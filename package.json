@@ -1,0 +1,13 @@
+{
+  "name": "clerk_app",
+  "version": "1.0.0",
+  "scripts": {
+    "client": "npm run serve --prefix client",
+    "server": "npm run dev --prefix server",
+    "dev": "concurrently \"npm run client\" \"npm run server\""
+  },
+  "dependencies": {
+    "concurrently": "^7.6.0",
+    "dotenv": "^16.0.3"
+  }
+}
