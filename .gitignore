@@ -1,0 +1,4 @@
+*.drawio
+*.drawio.*
+package-lock.json
+node_modules

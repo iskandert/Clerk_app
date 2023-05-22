@@ -2,7 +2,7 @@
   "name": "clerk_app",
   "version": "1.0.0",
   "scripts": {
-    "client": "npm run serve --prefix client",
+    "client": "npm run dev --prefix client",
     "server": "npm run dev --prefix server",
     "dev": "concurrently \"npm run client\" \"npm run server\""
   },

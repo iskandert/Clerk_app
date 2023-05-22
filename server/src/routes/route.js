@@ -21,7 +21,7 @@ class Route {
   //     },
   //   }
 
-  //   this.initRoutes()
+  //   // this.initRoutes()
   // }
 }
 

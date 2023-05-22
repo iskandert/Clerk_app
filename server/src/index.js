@@ -33,6 +33,6 @@ app.use(errorHandler)
 //   .catch(() => logger.error(`MongoDB is not connected`))
 
 app.listen(SERVER.port, (error) => {
-  if (!error) logger.info(`Server is starting at http://localhost:${SERVER.port}`)
-  else logger.error(`Server is not starting`)
+  if (!error) console.log(`Server is starting at http://localhost:${SERVER.port}`)
+  else console.log(`Server is not starting`)
 })

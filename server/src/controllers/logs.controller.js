@@ -7,12 +7,18 @@ class LogsController extends Controller {
   constructor() {
     super()
 
-    this.initController([this.create])
+    this.initController([this.create, this.auth])
   }
 
   create = async (req, res, next) => {
     const user = await this.repository.create(req.body)
     return this.createResponse(200, user)
+  }
+
+  auth = async (req, res, next) => {
+    // const user = await this.repository.create(req.body)
+    console.log('auth fish')
+    return this.createResponse(200, { auth: true })
   }
 }
 

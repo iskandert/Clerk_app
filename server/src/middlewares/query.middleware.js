@@ -2,10 +2,10 @@ import createError from './error.middleware.js'
 
 const queryMiddleware = (req, res, next) => {
   try {
-    setPaginationParams(req, res, next) //установка и валидация пагинации
-    setSelectParams(req, res, next) //установка и валидация селекции
-    setSortingParams(req, res, next) //установка и валидация сортировки
-    setFilterParams(req, res, next) //установка и валидация фильтрации
+    // setPaginationParams(req, res, next) //установка и валидация пагинации
+    // setSelectParams(req, res, next) //установка и валидация селекции
+    // setSortingParams(req, res, next) //установка и валидация сортировки
+    // setFilterParams(req, res, next) //установка и валидация фильтрации
 
     next()
   } catch (error) {
