@@ -2,6 +2,7 @@ import createError from './error.middleware.js'
 
 const queryMiddleware = (req, res, next) => {
   try {
+    console.log('in query mw')
     // setPaginationParams(req, res, next) //установка и валидация пагинации
     // setSelectParams(req, res, next) //установка и валидация селекции
     // setSortingParams(req, res, next) //установка и валидация сортировки

@@ -1,4 +1,4 @@
-import logger from '../configs/winston.config.js'
+// import logger from '../configs/winston.config.js'
 
 export default function errorHandler(error, req, res, next) {
   const response = {
@@ -18,7 +18,7 @@ export default function errorHandler(error, req, res, next) {
     ...response,
   }
 
-  logger.error(errorObj)
+  // logger.error(errorObj)
 
   console.log(error.stack)
   res.status(error.status).json(response)

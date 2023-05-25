@@ -5,7 +5,7 @@ import responseMiddleware from '../middlewares/response.middleware.js'
 
 class logsRoute extends Route {
   // url = '/logs'
-  url = '/auth'
+  // url = '/auth'
   controller = new logsController()
   query = queryMiddleware
   response = responseMiddleware
@@ -17,7 +17,8 @@ class logsRoute extends Route {
 
   initRoutes = () => {
     // this.router.post(`${this.url}/`, this.query, this.controller.create, this.response)
-    this.router.get(`${this.url}/login`, this.query, this.controller.auth, this.response)
+    this.router.get(`/files`, this.query, this.controller.files, this.response)
+    this.router.get(`/auth/login`, this.query, this.controller.auth, this.response)
     // GET google auth
     // GET all data
     // GET user settings
