@@ -1,5 +1,6 @@
 import { devUrl } from '../config'
 import axios from 'axios'
+import store from '../store'
 
 export default {
   async login(credentials) {
@@ -27,9 +28,16 @@ export default {
   //     throw e
   //   }
   // },
-  // getData({ col, id = '', params, dataRange = '' }) {
-  //   return axios.get(`${devUrl}/api/${col}/${id}${dataRange}`, { params: params }).then((response) => response.data)
-  // },
+  getData({ col, params }) {
+    return axios
+      .get(`${devUrl}/api/${col}`, {
+        params,
+        headers: {
+          Authorization: store.getters.isLoggedIn,
+        },
+      })
+      .then((response) => response.data)
+  },
   // createOrEditEntity({ col, method, payload, id = '', welcome, test, headers }) {
   //   const urlConf = welcome ? { urlTail: '/users', id: payload.companyId } : { urlTail: '', id: id }
   //   // if (test) return axios[method](`https://webhook.site/70329d0a-9473-4f63-8d87-cdc0a11e8d34`, payload)

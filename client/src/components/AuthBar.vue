@@ -4,7 +4,8 @@
   <div>
     <button @click="handleAuthClick" v-if="isScriptsLoaded && !isLoggedIn">Authorize</button>
     <button @click="handleSignoutClick" v-if="isScriptsLoaded && isLoggedIn">Sign Out</button>
-    <pre>{{ filesComp }}</pre>
+    <button @click="handleTest" v-if="isScriptsLoaded && isLoggedIn">Test</button>
+    <div v-for="(name, i) in filesComp" :key="i">{{ name }}</div>
   </div>
 </template>
 
@@ -20,16 +21,15 @@ const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/res
 // included, separated by spaces.
 const SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly'
 
+let gapi, google
+
 export default {
   data() {
     return {
       authText: '',
-      isLoggedIn: false,
-      files: [],
       tokenClient: undefined,
       gapiInited: false,
       gisInited: false,
-      content: "Запроса не было"
     }
   },
   computed: {
@@ -39,53 +39,30 @@ export default {
     authTextComp() {
       return this.authText
     },
+    isLoggedIn() {
+      return this.$store.getters.isLoggedIn
+    },
     filesComp() {
-      return this.content
+      const files = this.$store.getters.getDataList('files')
+
+      if (!files || files.length === 0) {
+        return ["No files found."]
+      }
+      console.log(files)
+      return ['Files:', ...files.map((file) => `${file.name} (${file.id})`)]
     },
   },
   methods: {
     async fish() {
       this.authText = await api.login()
     },
-    async listFiles(accessToken) {
-      console.log(accessToken)
-      try {
-        const response = await axios.get(`${devUrl}/api/files`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        })
-        const files = response.data?.data
-
-        if (!files || files.length === 0) {
-          this.content = "No files found."
-          return
-        }
-        console.log(files)
-        const output = files.reduce(
-          (str, file) => `${str}${file.name}(${file.id}) \n`,
-          "Files:\n"
-        )
-        this.content = output
-      } catch (err) {
-        console.log('error', err)
-        this.content = err.message
-      }
-    },
-    handleAuthChange(token) {
-      this.isLoggedIn = !!token
-      if (token) {
-        this.listFiles(token.access_token)
-      } else {
-        this.content = ""
-      }
-    },
     async handleAuthClick() {
       this.tokenClient.callback = async (resp) => {
         if (resp.error !== undefined) {
           throw (resp)
         }
-        this.handleAuthChange(resp)
+        this.$store.commit('SET_TOKEN', resp.access_token)
+        // this.handleAuthChange(resp)
       }
 
       if (gapi.client.getToken() === null) {
@@ -99,12 +76,16 @@ export default {
       }
     },
     async handleSignoutClick() {
-      const token = gapi.client.getToken()
+      const token = this.isLoggedIn
       if (token !== null) {
-        google.accounts.oauth2.revoke(token.access_token)
+        console.log('sign out');
+        google.accounts.oauth2.revoke(token)
         gapi.client.setToken("")
-        this.handleAuthChange(null)
+        this.$store.commit('RESET')
       }
+    },
+    async handleTest() {
+      api.getData({ col: 'test' })
     },
     async initializeGapiClient() {
       await gapi.client.init({
@@ -115,23 +96,21 @@ export default {
     },
     gapiLoaded(e) {
       console.log('yessss gapi')
+      gapi = window.gapi
       gapi.load('client', this.initializeGapiClient)
     },
     gisLoaded() {
       console.log('yessss gsi')
+      google = window.google
       this.tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: '',
       })
       this.gisInited = true
-      this.isLoggedIn = true
-      this.maybeEnableButtons()
-    },
-    maybeEnableButtons() {
-      if (gapi && this.tokenClient) {
-        this.handleAuthChange(gapi.client?.getToken() || null)
-      }
+      //   if (gapi && this.tokenClient) {
+      //     this.handleAuthChange(gapi.client?.getToken() || null)
+      //   }
     },
     loadAndHandleScript(src, handle) {
       const script = document.createElement('script')
@@ -142,6 +121,19 @@ export default {
       script.setAttribute("async", "")
       script.setAttribute("defer", "")
       document.head.appendChild(script)
+    }
+  },
+  watch: {
+    isLoggedIn: {
+      async handler(nv) {
+        if (nv) {
+          try {
+            await this.$store.dispatch('setFiles')
+          } catch (err) {
+            console.log('error', err)
+          }
+        }
+      }
     }
   },
   mounted() {

@@ -17,7 +17,8 @@ class LogsController extends Controller {
 
   files = async (req, res, next) => {
     console.log('controller files')
-    const files = await this.repository.files(req.headers.authorization.split(' ')[1])
+    // const files = await this.repository.files(req.headers.authorization.split(' ')[1])
+    const files = await this.repository.files(req.headers.authorization)
     console.log('get files')
     return this.createResponse(200, files)
   }
