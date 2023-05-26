@@ -10,7 +10,6 @@ import 'element-plus/theme-chalk/display.css'
 import axios from 'axios'
 import ru from 'element-plus/dist/locale/ru.js'
 
-axios.defaults.headers.common['Authorization'] = store.getters.isLoggedIn
 const user = store.getters.getUser
 const app = createApp(App)
 

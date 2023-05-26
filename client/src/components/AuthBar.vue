@@ -11,11 +11,9 @@
 
 <script>
 import api from '../services/api'
-import { devUrl } from '../config'
-import axios from 'axios'
-
-const CLIENT_ID = '1090227126348-bekiom6rprjv0i3npohhroftrg2fnr0h.apps.googleusercontent.com'
-const API_KEY = 'AIzaSyBMYClU3r3RLtTX7PLsWkYpBtOLMYAb644'
+import { devUrl, API_KEY, CLIENT_ID } from '../config'
+// const CLIENT_ID = '1090227126348-bekiom6rprjv0i3npohhroftrg2fnr0h.apps.googleusercontent.com'
+// const API_KEY = 'AIzaSyBMYClU3r3RLtTX7PLsWkYpBtOLMYAb644'
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
@@ -43,12 +41,11 @@ export default {
       return this.$store.getters.isLoggedIn
     },
     filesComp() {
-      const files = this.$store.getters.getDataList('files')
+      const files = this.$store.getters.getList('files')
 
       if (!files || files.length === 0) {
         return ["No files found."]
       }
-      console.log(files)
       return ['Files:', ...files.map((file) => `${file.name} (${file.id})`)]
     },
   },
@@ -61,14 +58,12 @@ export default {
         if (resp.error !== undefined) {
           throw (resp)
         }
-        this.$store.commit('SET_TOKEN', resp.access_token)
-        // this.handleAuthChange(resp)
+        this.$store.dispatch('login', { token: resp.access_token })
       }
 
       if (gapi.client.getToken() === null) {
         // Prompt the user to select a Google Account and ask for consent to share their data
         // when establishing a new session.
-        console.log(this.tokenClient.requestAccessToken)
         this.tokenClient.requestAccessToken({ prompt: 'consent' })
       } else {
         // Skip display of account chooser and consent dialog for an existing session.
@@ -76,13 +71,8 @@ export default {
       }
     },
     async handleSignoutClick() {
-      const token = this.isLoggedIn
-      if (token !== null) {
-        console.log('sign out');
-        google.accounts.oauth2.revoke(token)
-        gapi.client.setToken("")
-        this.$store.commit('RESET')
-      }
+      if (!this.isLoggedIn) return
+      this.$store.dispatch('logout')
     },
     async handleTest() {
       api.getData({ col: 'test' })
@@ -108,9 +98,6 @@ export default {
         callback: '',
       })
       this.gisInited = true
-      //   if (gapi && this.tokenClient) {
-      //     this.handleAuthChange(gapi.client?.getToken() || null)
-      //   }
     },
     loadAndHandleScript(src, handle) {
       const script = document.createElement('script')
@@ -128,7 +115,7 @@ export default {
       async handler(nv) {
         if (nv) {
           try {
-            await this.$store.dispatch('setFiles')
+            await this.$store.dispatch('getDataList')
           } catch (err) {
             console.log('error', err)
           }

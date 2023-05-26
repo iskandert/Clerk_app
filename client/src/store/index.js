@@ -1,6 +1,7 @@
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import api from '../services/api'
+import axios from 'axios'
 
 const getDefaultState = () => {
   return {
@@ -29,7 +30,7 @@ export default createStore({
     getWindowSizeState: (state) => {
       return state.isMobileSize
     },
-    getDataList: (state) => (col) => {
+    getList: (state) => (col) => {
       return state[col]
     },
     // getViewportSize: (state) => (size) => {
@@ -59,17 +60,22 @@ export default createStore({
   actions: {
     login: ({ commit }, { token, user }) => {
       commit('SET_TOKEN', token)
+      axios.defaults.headers.common['Authorization'] = token
       // commit('SET_USER', user)
     },
-    logout: ({ commit }) => {
+    logout: async ({ commit, getters }) => {
+      console.log('sign out')
+      await window.google.accounts.oauth2.revoke(getters.isLoggedIn)
+      window.gapi.client.setToken('')
       commit('RESET', '')
+      axios.defaults.headers.common['Authorization'] = ''
     },
-    setFiles: async ({ commit }) => {
+    getDataList: async ({ commit }) => {
       try {
         console.log('dispatch')
-        const data = await api.getData({ col: 'files' }).then((res) => res.data)
-        console.log(data)
-        commit('SET_SUP_DATA', { f: 'files', data })
+        const res = await api.getData({ col: 'files' })
+        console.log(res)
+        commit('SET_SUP_DATA', { f: 'files', data: res.data })
         // return data
       } catch (err) {
         console.log(err)

@@ -32,9 +32,9 @@ export default {
     return axios
       .get(`${devUrl}/api/${col}`, {
         params,
-        headers: {
-          Authorization: store.getters.isLoggedIn,
-        },
+        // headers: {
+        //   Authorization: store.getters.isLoggedIn,
+        // },
       })
       .then((response) => response.data)
   },
