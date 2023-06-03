@@ -48,12 +48,8 @@ export default createStore({
     SET_TOKEN: (state, { token, saved_in, expires_in }) => {
       state.token = token
       state.saved_in = saved_in
-      state.expires_in = expires_in
-      // state.expires_in = 75
-
-      // console.log(state.token)
-      // console.log(state.saved_in)
-      // console.log(state.expires_in)
+      state.expires_in = expires_in // prod
+      // state.expires_in = 65 // test
     },
     SET_USER: (state, user) => {
       state.user = user
@@ -66,6 +62,7 @@ export default createStore({
       state.loadState = value
     },
     RESET: (state) => {
+      clearTimeout(state.expiringTimeout)
       Object.assign(state, getDefaultState())
     },
   },
@@ -86,6 +83,7 @@ export default createStore({
       axios.defaults.headers.common['Authorization'] = ''
     },
     setTokenExpiring: ({ commit, getters }) => {
+      if (!getters.isLoggedIn) return
       const saved_in = getters.getList('saved_in')
       const expires_in = getters.getList('expires_in')
       commit('SET_SUP_DATA', {
