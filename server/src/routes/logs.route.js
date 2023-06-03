@@ -18,6 +18,7 @@ class logsRoute extends Route {
   initRoutes = () => {
     // this.router.post(`${this.url}/`, this.query, this.controller.create, this.response)
     this.router.get(`/files`, this.query, this.controller.files, this.response)
+    this.router.get(`/alldata`, this.query, this.controller.alldata, this.response)
     this.router.get(`/auth/login`, this.query, this.controller.auth, this.response)
     // GET google auth
     // GET all data

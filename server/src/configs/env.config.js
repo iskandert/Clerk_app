@@ -17,8 +17,16 @@ const APP_GDATA = {
 }
 
 // Авторизация с использованием OAuth2
-const oauth2Client = new OAuth2(APP_GDATA.id, APP_GDATA.secret, APP_GDATA.redirect)
+// const oauth2Client = new OAuth2(APP_GDATA.id, APP_GDATA.secret, APP_GDATA.redirect)
+const oauthOptions = [APP_GDATA.id, APP_GDATA.secret, APP_GDATA.redirect]
 
 const MONGO = {}
 
-export { SERVER, MONGO, APP_GDATA, oauth2Client }
+export {
+  //
+  SERVER,
+  MONGO,
+  APP_GDATA,
+  // oauth2Client,
+  oauthOptions,
+}

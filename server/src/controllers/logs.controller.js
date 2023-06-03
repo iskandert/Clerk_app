@@ -7,7 +7,7 @@ class LogsController extends Controller {
   constructor() {
     super()
 
-    this.initController([this.create, this.files, this.auth])
+    this.initController([this.create, this.files, this.auth, this.alldata])
   }
 
   create = async (req, res, next) => {
@@ -16,11 +16,29 @@ class LogsController extends Controller {
   }
 
   files = async (req, res, next) => {
+    const auth = req.headers.authorization
     console.log('controller files')
     // const files = await this.repository.files(req.headers.authorization.split(' ')[1])
-    const files = await this.repository.files(req.headers.authorization)
+    const files = await this.repository.files(auth)
     console.log('get files')
     return this.createResponse(200, files)
+  }
+
+  alldata = async (req, res, next) => {
+    const auth = req.headers.authorization
+    console.log('controller alldata')
+    // get appFolder metadata
+    // if (!metadata.list.length) create appFolderFiles
+    // get appFolderFiles
+    // create data for response
+    let alldata = { data: 'qwerty' }
+    let meta = await this.repository.getAppMeta(auth)
+    if (!meta.length) {
+      console.log('null length')
+      alldata = await this.repository.createAppFile(auth)
+    }
+    console.log('get alldata')
+    return this.createResponse(200, alldata)
   }
 
   auth = async (req, res, next) => {
