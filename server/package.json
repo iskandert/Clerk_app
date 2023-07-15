@@ -4,6 +4,11 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "nodemonConfig": {
+    "ignore": [
+      "temporary/*"
+    ]
+  },
   "scripts": {
     "dev": "nodemon ./src/index.js"
   },
@@ -31,6 +36,7 @@
     "http-errors": "^2.0.0",
     "mongoose": "^7.0.0",
     "morgan": "^1.10.0",
+    "uuid": "^9.0.0",
     "winston": "^3.8.2"
   }
 }

@@ -1,34 +1,28 @@
 <template>
-  <button @click="fish">Fish</button>
-  <p>{{ authTextComp }}</p>
   <div>
-    <button @click="handleAuthClick" v-if="isScriptsLoaded && !isLoggedIn">Authorize</button>
-    <button @click="handleSignoutClick" v-if="isScriptsLoaded && isLoggedIn">Sign Out</button>
-    <!-- <div v-for="(name, i) in filesComp" :key="i">{{ name }}</div> -->
+    <button @click="handleAuthClick" v-if="isScriptsLoaded && !isLoggedIn">
+      Authorize
+    </button>
+    <button @click="handleSignoutClick" v-if="isScriptsLoaded && isLoggedIn">
+      Sign Out
+    </button>
+    <div v-if="isLoggedIn">
+      <button @click="getMeta">Get Files Meta</button>
+      <button @click="deleteAllData">Delete App Data</button>
+      <button @click="getAllData">Init & Get All Data</button>
+    </div>
     <pre>{{ filesComp }}</pre>
-  </div>
-  <div v-if="isScriptsLoaded && isLoggedIn">
-    <button @click="handleTest">Test</button>
-    <button @click="getFiles">Files</button>
-    <button @click="getAllData">All Data</button>
   </div>
 </template>
 
 <script>
 import api from '../services/api'
 import store from '../store'
-import { devUrl, API_KEY, CLIENT_ID } from '../config'
-import { watchTokenExpiring } from '../composables/watchers'
-// const CLIENT_ID = '1090227126348-bekiom6rprjv0i3npohhroftrg2fnr0h.apps.googleusercontent.com'
-// const API_KEY = 'AIzaSyBMYClU3r3RLtTX7PLsWkYpBtOLMYAb644'
-const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-const SCOPES = [
-  //,
-  'https://www.googleapis.com/auth/drive.metadata.readonly',
-  'https://www.googleapis.com/auth/drive.appdata'
-].join(' ')
+import { API_KEY, CLIENT_ID, DISCOVERY_DOC, SCOPES } from '../config'
+import {
+  watchTokenExpiring
+} from '../composables/watchers'
+import { v4 as uuidv4 } from 'uuid'
 
 let gapi, google
 
@@ -57,18 +51,10 @@ export default {
       return this.$store.getters.isLoggedIn
     },
     filesComp() {
-      const files = this.$store.getters.getList('alldata')
-      // console.log(files);
-      // if (!files || files.length === 0) {
-      //   return ["No files found."]
-      // }
-      return `Files:\n${JSON.stringify(files)}`
+      return this.$store.getters.getList('all')
     },
   },
   methods: {
-    async fish() {
-      this.authText = await api.login()
-    },
     async handleAuthClick() {
       this.tokenClient.callback = async (resp) => {
         console.log('tokenClient.callback');
@@ -98,9 +84,8 @@ export default {
       if (!this.isLoggedIn) return
       this.$store.dispatch('logout')
     },
-    async handleTest() {
-      api.getData({ col: 'test' })
-    },
+
+    // ----------- handling of google scripts -----------
     async initializeGapiClient() {
       await gapi.client.init({
         apiKey: API_KEY,
@@ -133,16 +118,25 @@ export default {
       script.setAttribute("defer", "")
       document.head.appendChild(script)
     },
-    async getFiles() {
+
+    // ----------- requests to google drive -----------
+    async getMeta() {
       try {
-        await this.$store.dispatch('getDataList', { col: 'files' })
+        await this.$store.dispatch('getDataList', { col: 'meta' })
+      } catch (err) {
+        console.log('error', err)
+      }
+    },
+    async deleteAllData() {
+      try {
+        await this.$store.dispatch('deleteDataList', { col: 'all' })
       } catch (err) {
         console.log('error', err)
       }
     },
     async getAllData() {
       try {
-        await this.$store.dispatch('getDataList', { col: 'alldata' })
+        await this.$store.dispatch('getDataList', { col: 'all' })
       } catch (err) {
         console.log('error', err)
       }
@@ -152,12 +146,7 @@ export default {
     isLoggedIn: {
       async handler(nv) {
         if (nv) {
-          try {
-            // await this.$store.dispatch('getDataList', { col: 'files' })
-            // await this.$store.dispatch('getDataList', { col: 'alldata' })
-          } catch (err) {
-            console.log('error', err)
-          }
+          await this.getAllData()
         }
       }
     }

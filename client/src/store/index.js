@@ -12,8 +12,8 @@ const getDefaultState = () => {
     user: {},
     loadState: false,
     isMobileSize: false,
-    files: [],
-    alldata: [],
+    meta: [],
+    all: {},
     // viewportSize: getInitWidth(layoutSizing), // xs, sm, md, lg, xl
   }
 }
@@ -55,8 +55,12 @@ export default createStore({
       state.user = user
     },
     SET_SUP_DATA: (state, { f, data }) => {
-      // console.log('in SET:', f, data)
+      let colParts = f.split('/')
+      if (colParts.length === 2) return (state[colParts[0]][colParts[1]] = data)
       state[f] = data
+    },
+    SET_ALL_DATA: (state, { data }) => {
+      state.all = data
     },
     SET_LOAD_STATE: (state, value) => {
       state.loadState = value
@@ -73,13 +77,12 @@ export default createStore({
       dispatch('setTokenExpiring')
 
       axios.defaults.headers.common['Authorization'] = token
-      // commit('SET_USER', user)
     },
     logout: async ({ commit, getters }) => {
       console.log('sign out')
-      await window.google.accounts.oauth2.revoke(getters.isLoggedIn)
+      window.google.accounts.oauth2.revoke(getters.isLoggedIn)
       window.gapi.client.setToken('')
-      commit('RESET', '')
+      commit('RESET')
       axios.defaults.headers.common['Authorization'] = ''
     },
     setTokenExpiring: ({ commit, getters }) => {
@@ -97,16 +100,25 @@ export default createStore({
         ),
       })
     },
-    getDataList: async ({ commit }, params) => {
+    getDataList: async ({ commit }, payload) => {
       try {
         console.log('dispatch')
-        const res = await api.getData(params)
+        const res = await api.getData(payload)
         console.log(res)
-        commit('SET_SUP_DATA', { f: params.col, data: res.data })
+        if (payload.col === 'all') commit('SET_ALL_DATA', { data: res.data })
+        else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
       } catch (err) {
         console.log(err)
       }
     },
+    async deleteDataList({ commit }, payload) {
+      try {
+        const res = await api.deleteData(payload)
+        if (payload.col === 'all') commit('SET_ALL_DATA', { data: res.data })
+        else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
+      } catch (e) {
+        throw e
+      }
+    },
   },
-  modules: {},
 })
