@@ -1,23 +1,90 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import AppLayout from '../views/AppLayout.vue'
+import LoginView from '../views/LoginView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
+import store from '../store'
+
+const routes = [
+  {
+    path: '/',
+    alias: '/login',
+    name: 'login',
+    component: LoginView,
+  },
+  {
+    path: '/index.html',
+    alias: '/login',
+    name: 'login',
+    component: LoginView,
+  },
+  {
+    path: '/main',
+    name: 'main',
+    component: AppLayout,
+    meta: { auth: true },
+    children: [
+      {
+        path: '/main',
+        name: 'home',
+        component: () => import('../views/HomeView.vue'),
+        meta: { auth: true },
+      },
+      {
+        path: '/404',
+        name: '404',
+        component: NotFoundView,
+      },
+      {
+        path: '/:pathMatch(.+)+',
+        redirect: '/404',
+      },
+      {
+        path: '/',
+        redirect: '/main',
+        meta: { auth: true },
+      },
+    ],
+  },
+  // {
+  //   path: '/about',
+  //   name: 'about',
+  //   // route level code-splitting
+  //   // this generates a separate chunk (About.[hash].js) for this route
+  //   // which is lazy-loaded when the route is visited.
+  //   component: () => import('../views/AboutView.vue')
+  // }
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   // route level code-splitting
-    //   // this generates a separate chunk (About.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   component: () => import('../views/AboutView.vue')
-    // }
-  ],
+  routes,
+})
+
+router.beforeEach((to, from, next) => {
+  console.log(to)
+  let authorized = false
+  if (store.getters.isLoggedIn || (JSON.parse(window.localStorage.getItem('vuex')) && JSON.parse(window.localStorage.getItem('vuex')).token)) {
+    authorized = true
+  }
+  const requiresAuth = to.matched.some((r) => r.meta.auth)
+
+  // console.log('guard 1:', (to.fullPath === '/' || to.fullPath === '/login') && authorized)
+  if ((to.fullPath === '/' || to.fullPath === '/login') && authorized) {
+    next('/main')
+    return
+  }
+  // console.log('guard 2:', requiresAuth && !authorized)
+  if (requiresAuth && !authorized) {
+    next('/login')
+    return
+  }
+  // console.log('guard 3:', JSON.stringify(to.fullPath) === JSON.stringify(from.fullPath) && to.fullPath !== '/' && from.fullPath !== '/')
+  if (JSON.stringify(to.fullPath) === JSON.stringify(from.fullPath) && to.fullPath !== '/' && from.fullPath !== '/') {
+    next(false)
+    return
+  }
+  // console.log('next()')
+  next()
 })
 
 export default router

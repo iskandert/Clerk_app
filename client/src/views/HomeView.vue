@@ -1,9 +1,12 @@
 <template>
-  <main>
-    <AuthBar />
-  </main>
+  <div>
+    <ActionsBar />
+  </div>
 </template>
-
-<script setup>
-import AuthBar from '../components/AuthBar.vue'
+<script>
+import ActionsBar from '../components/ActionsBar.vue';
+export default {
+  components: { ActionsBar }
+}
 </script>
+<style ></style>

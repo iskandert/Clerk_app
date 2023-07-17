@@ -1,40 +1,28 @@
 <template>
   <div>
-    <button @click="handleAuthClick" v-if="isScriptsLoaded && !isLoggedIn">
-      Authorize
-    </button>
-    <button @click="handleSignoutClick" v-if="isScriptsLoaded && isLoggedIn">
-      Sign Out
-    </button>
-    <div v-if="isLoggedIn">
-      <button @click="getMeta">Get Files Meta</button>
-      <button @click="deleteAllData">Delete App Data</button>
-      <button @click="getAllData">Init & Get All Data</button>
-    </div>
-    <pre>{{ filesComp }}</pre>
+    <el-button @click="handleAuthClick" v-if="isScriptsLoaded && !isLoggedIn" :icon="iconGoogle">
+      Войти с помощью Google
+    </el-button>
+    <el-button @click="handleSignoutClick" v-if="isScriptsLoaded && isLoggedIn">
+      Выйти
+    </el-button>
   </div>
 </template>
-
 <script>
-import api from '../services/api'
-import store from '../store'
 import { API_KEY, CLIENT_ID, DISCOVERY_DOC, SCOPES } from '../config'
-import {
-  watchTokenExpiring
-} from '../composables/watchers'
-import { v4 as uuidv4 } from 'uuid'
+import Google from '../components/icons/Google.vue'
+import { shallowRef } from 'vue'
 
 let gapi, google
 
 export default {
   setup() {
-
-    store.dispatch('setTokenExpiring')
-    watchTokenExpiring()
+    return {
+      iconGoogle: shallowRef(Google)
+    }
   },
   data() {
     return {
-      authText: '',
       tokenClient: undefined,
       gapiInited: false,
       gisInited: false,
@@ -43,9 +31,6 @@ export default {
   computed: {
     isScriptsLoaded() {
       return this.gapiInited && this.gisInited
-    },
-    authTextComp() {
-      return this.authText
     },
     isLoggedIn() {
       return this.$store.getters.isLoggedIn
@@ -69,6 +54,7 @@ export default {
           saved_in: this.$dayjs(),
           expires_in: resp.expires_in
         })
+        window.location.replace('/main')
       }
 
       if (gapi.client.getToken() === null) {
@@ -81,8 +67,26 @@ export default {
       }
     },
     async handleSignoutClick() {
-      if (!this.isLoggedIn) return
-      this.$store.dispatch('logout')
+      this.$confirm('Вы хотите выйти из системы?', '', {
+        confirmButtonText: 'Да',
+        cancelButtonText: 'Нет',
+        type: 'warning',
+      })
+        .then(() => {
+          this.$store.dispatch('logout')
+          this.$message({
+            type: 'success',
+            message: 'Вышли',
+          })
+        })
+        .then(() => this.$router.push({ path: '/login' }))
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: 'Действие отменено',
+          })
+        })
+      // this.$store.dispatch('logout')
     },
 
     // ----------- handling of google scripts -----------
@@ -118,43 +122,12 @@ export default {
       script.setAttribute("defer", "")
       document.head.appendChild(script)
     },
-
-    // ----------- requests to google drive -----------
-    async getMeta() {
-      try {
-        await this.$store.dispatch('getDataList', { col: 'meta' })
-      } catch (err) {
-        console.log('error', err)
-      }
-    },
-    async deleteAllData() {
-      try {
-        await this.$store.dispatch('deleteDataList', { col: 'all' })
-      } catch (err) {
-        console.log('error', err)
-      }
-    },
-    async getAllData() {
-      try {
-        await this.$store.dispatch('getDataList', { col: 'all' })
-      } catch (err) {
-        console.log('error', err)
-      }
-    },
-  },
-  watch: {
-    isLoggedIn: {
-      async handler(nv) {
-        if (nv) {
-          await this.getAllData()
-        }
-      }
-    }
   },
   mounted() {
-    this.loadAndHandleScript('https://apis.google.com/js/api.js', this.gapiLoaded)
-    this.loadAndHandleScript('https://accounts.google.com/gsi/client', this.gisLoaded)
-
+    if (!window.gapi) this.loadAndHandleScript('https://apis.google.com/js/api.js', this.gapiLoaded)
+    else this.gapiLoaded()
+    if (!window.google) this.loadAndHandleScript('https://accounts.google.com/gsi/client', this.gisLoaded)
+    else this.gisLoaded()
   }
 }
 </script>

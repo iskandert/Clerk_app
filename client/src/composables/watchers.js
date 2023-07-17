@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import store from '../store'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import router from '../router'
 const { alert: elAlert, confirm: elConfirm, prompt: elPrompt } = ElMessageBox
 
 function watchTokenExpiring() {
@@ -21,6 +22,14 @@ function watchTokenExpiring() {
       Чтобы продолжать безопасную работу, нужно пройти авторизацию снова`,
           'Требуется авторизация'
         )
+          .then(() => {
+            store.dispatch('logout')
+            ElMessage({
+              type: 'success',
+              message: 'Вышли',
+            })
+          })
+          .then(() => router.push({ path: '/login' }))
       } catch (e) {
       } finally {
         console.log('yesss')
