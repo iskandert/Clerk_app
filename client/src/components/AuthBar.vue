@@ -1,13 +1,25 @@
 <template>
-  <div>
-    <el-button @click="handleAuthClick" v-if="isScriptsLoaded && !isLoggedIn" :icon="iconGoogle">
-      Войти с помощью Google
-    </el-button>
-    <el-button @click="handleSignoutClick" v-if="isScriptsLoaded && isLoggedIn">
-      Выйти
-    </el-button>
+  <div class="sign-in" @click="handleAuthClick" v-if="isIn ?? (isScriptsLoaded && !isLoggedIn)">
+    <slot name="signIn">
+      <el-button size="large" :icon="iconGoogle">
+        Войти с помощью Google
+      </el-button>
+    </slot>
+  </div>
+  <div class="sign-out" @click="handleSignoutClick" v-if="isOut ?? (isScriptsLoaded && isLoggedIn)">
+    <slot name="signOut">
+      <el-button>
+        Выйти
+      </el-button>
+    </slot>
   </div>
 </template>
+<style scoped>
+.sign-in,
+.sign-out {
+  display: inline-block;
+}
+</style>
 <script>
 import { API_KEY, CLIENT_ID, DISCOVERY_DOC, SCOPES } from '../config'
 import Google from '../components/icons/Google.vue'
@@ -20,6 +32,9 @@ export default {
     return {
       iconGoogle: shallowRef(Google)
     }
+  },
+  props: {
+    type: String, // in | out
   },
   data() {
     return {
@@ -38,6 +53,12 @@ export default {
     filesComp() {
       return this.$store.getters.getList('all')
     },
+    isIn() {
+      return this.type === 'in'
+    },
+    isOut() {
+      return this.type === 'out'
+    },
   },
   methods: {
     async handleAuthClick() {
@@ -48,13 +69,13 @@ export default {
         }
         console.log(resp);
         console.log(this.tokenClient);
+        window.location.replace('/main')
         this.$store.dispatch('login', {
           //
           token: resp.access_token,
           saved_in: this.$dayjs(),
           expires_in: resp.expires_in
         })
-        window.location.replace('/main')
       }
 
       if (gapi.client.getToken() === null) {

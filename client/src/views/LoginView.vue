@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="btn-container">
-      <AuthBar />
+      <AuthBar type="in" />
       <el-link type="primary" @click="openDescription">Зачем мне это нужно?</el-link>
     </div>
   </div>
@@ -19,7 +19,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
 }
 </style>
 <script>
@@ -41,12 +41,17 @@ export default {
   },
   methods: {
     openDescription() {
-      this.$alert(`Мы не храним данные о вашем бюджете.
-        Информация сохраняется в отдельной папке на вашем Google диске. 
-        К другим папкам и файлам наше приложение не будет иметь доступа.`,
-        'Это нужно для безопасного хранения данных', {
-        confirmButtonText: 'Понятно!'
-      })
+      this.$alert(
+        `
+        <div>Мы не храним данные о вашем бюджете.
+        Информация сохраняется в отдельной папке на вашем Google диске.</div>
+        <div>К другим папкам и файлам наше приложение не будет иметь доступа.</div>
+        `,
+        'Это нужно для безопасного хранения данных',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: 'Понятно!'
+        })
     }
   },
   mounted() {

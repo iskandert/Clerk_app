@@ -30,6 +30,24 @@ const routes = [
         meta: { auth: true },
       },
       {
+        path: '/actions',
+        name: 'actions',
+        component: () => import('../views/ActionsView.vue'),
+        meta: { auth: true },
+      },
+      {
+        path: '/plans',
+        name: 'plans',
+        component: () => import('../views/PlansView.vue'),
+        meta: { auth: true },
+      },
+      {
+        path: '/analitic',
+        name: 'analitic',
+        component: () => import('../views/AnaliticView.vue'),
+        meta: { auth: true },
+      },
+      {
         path: '/404',
         name: '404',
         component: NotFoundView,
