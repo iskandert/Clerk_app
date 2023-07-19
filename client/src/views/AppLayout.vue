@@ -18,7 +18,7 @@
     </main>
     <footer>
       <div class="section-container">
-
+        <AppFooter />
       </div>
     </footer>
   </div>
@@ -26,16 +26,15 @@
 
 <script>
 import AppHeader from '../components/AppHeader.vue'
+import AppFooter from '../components/AppFooter.vue'
 
 export default {
   components: {
-    AppHeader
+    AppHeader,
+    AppFooter
   },
   data() {
-    return {
-      headerHeight: '40px',
-      footerHeight: '40px',
-    }
+    return {}
   }
 }
 </script>
@@ -43,6 +42,7 @@ export default {
 :root {
   --header-height: 40px;
   --footer-height: 40px;
+  --footer-height-mobile: 64px;
 }
 </style>
 <style scoped>
@@ -52,14 +52,6 @@ export default {
   position: relative;
 }
 
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: rgb(186, 186, 186)
-}
-
 header,
 main,
 footer {
@@ -67,20 +59,36 @@ footer {
   overflow: hidden;
 }
 
-footer {
+header {
   position: fixed;
-  top: calc(100vh - var(--footer-height));
-  top: calc(100dvh - var(--footer-height));
+  top: 0;
   left: 0;
   right: 0;
-  background-color: aqua;
+  background-color: var(--el-color-primary-dark-2);
+}
+
+main {
+  background-color: var(--el-color-info-light-8);
+}
+
+footer {
+  position: fixed;
+  top: calc(100vh - var(--footer-height-mobile));
+  top: calc(100dvh - var(--footer-height-mobile));
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-top: 1px solid var(--el-text-color-disabled);
   padding-bottom: var(--footer-height);
 }
 
 .section-container {
   width: calc(100% - 32px);
-  background-color: rgba(255, 255, 255, 0.5);
+  /*background-color: rgba(255, 255, 255, 0.5);*/
   margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 header>.section-container {
@@ -91,19 +99,32 @@ main>.section-container {
   min-height: 100vh;
   min-height: 100dvh;
   padding-top: var(--header-height);
-  padding-bottom: var(--footer-height);
+  padding-bottom: var(--footer-height-mobile);
 }
 
 footer>.section-container {
-  min-height: var(--footer-height);
+  min-height: var(--footer-height-mobile);
 }
 
 @media (min-width: 768px) {
+  :root {
+    --footer-height: 64px;
+  }
 
   /* mobile width */
   footer {
     position: static;
     padding-bottom: 0;
+    background-color: var(--el-color-info-light-8);
+    border: none;
+  }
+
+  footer>.section-container {
+    min-height: var(--footer-height);
+  }
+
+  main {
+    background-color: #fff;
   }
 
   main>.section-container {

@@ -88,6 +88,7 @@ export default {
       }
     },
     async handleSignoutClick() {
+      console.log('signout');
       this.$confirm('Вы хотите выйти из системы?', '', {
         confirmButtonText: 'Да',
         cancelButtonText: 'Нет',
