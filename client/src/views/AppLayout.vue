@@ -68,7 +68,7 @@ header {
 }
 
 main {
-  background-color: var(--el-color-info-light-8);
+  background-color: var(--el-color-gray-dark-2);
 }
 
 footer {
@@ -84,7 +84,6 @@ footer {
 
 .section-container {
   width: calc(100% - 32px);
-  /*background-color: rgba(255, 255, 255, 0.5);*/
   margin: 0 auto;
   overflow: hidden;
   display: flex;
@@ -98,12 +97,12 @@ header>.section-container {
 main>.section-container {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-top: var(--header-height);
-  padding-bottom: var(--footer-height-mobile);
+  padding-top: calc(var(--header-height) + 16px);
+  padding-bottom: calc(var(--footer-height-mobile) + 16px);
 }
 
 footer>.section-container {
-  min-height: var(--footer-height-mobile);
+  min-height: calc(var(--footer-height-mobile) * 2);
 }
 
 @media (min-width: 768px) {
@@ -111,11 +110,10 @@ footer>.section-container {
     --footer-height: 64px;
   }
 
-  /* mobile width */
   footer {
     position: static;
     padding-bottom: 0;
-    background-color: var(--el-color-info-light-8);
+    background-color: var(--el-color-gray);
     border: none;
   }
 
@@ -123,24 +121,22 @@ footer>.section-container {
     min-height: var(--footer-height);
   }
 
-  main {
-    background-color: #fff;
-  }
-
   main>.section-container {
     min-height: calc(100vh - var(--footer-height));
     min-height: calc(100dvh - var(--footer-height));
-    padding-bottom: 0;
+    padding-bottom: 16px;
   }
+
+  .section-container {
+    max-width: 1000px;
+  }
+}
+
+@media (min-width: 1400px) {
 
   .section-container {
     max-width: 1200px;
   }
-
-}
-
-@media (min-width: 992px) {
-  /* mobile height */
 
 }
 </style>

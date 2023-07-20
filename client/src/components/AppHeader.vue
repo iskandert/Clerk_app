@@ -14,8 +14,8 @@
         text-color="var(--el-color-transparent-light-3)">
         <el-menu-item index="/main">Главная</el-menu-item>
         <el-menu-item index="/actions">Операции</el-menu-item>
-        <el-menu-item index="/plans">Планы</el-menu-item>
         <el-menu-item index="/analitic">Аналитика</el-menu-item>
+        <el-menu-item index="/plans">Планы</el-menu-item>
       </el-menu>
       <div class="settings">
         <el-dropdown placement="bottom-end" trigger="click">
@@ -39,14 +39,14 @@ import AuthBar from './AuthBar.vue'
 import LogoIcon from '../components/icons/LogoIcon.vue'
 import LogoText from '../components/icons/LogoText.vue'
 import { shallowRef } from 'vue'
-import { Setting, Close, User, Delete } from '@element-plus/icons-vue'
+import { Tools, Close, User, Delete } from '@element-plus/icons-vue'
 import { notifyWrap } from '../services/utils'
 
 export default {
   components: { AuthBar, LogoIcon, LogoText },
   setup() {
     return {
-      iconSetting: shallowRef(Setting),
+      iconSetting: shallowRef(Tools),
       iconUser: shallowRef(User),
       iconExit: shallowRef(Close),
       iconDelete: shallowRef(Delete),

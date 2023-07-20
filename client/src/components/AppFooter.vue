@@ -7,7 +7,7 @@
         <el-menu-item index="/main">
           <div class="menu-item-text">
             <el-icon :size="24">
-              <Setting />
+              <House />
             </el-icon>
             <span>Главная</span>
           </div>
@@ -15,48 +15,56 @@
         <el-menu-item index="/actions">
           <div class="menu-item-text">
             <el-icon :size="24">
-              <User />
+              <Clock />
             </el-icon>
             <span>Операции</span>
-          </div>
-        </el-menu-item>
-        <el-menu-item index="/plans">
-          <div class="menu-item-text">
-            <el-icon :size="24">
-              <Close />
-            </el-icon>
-            <span>Планы</span>
           </div>
         </el-menu-item>
         <el-menu-item index="/analitic">
           <div class="menu-item-text">
             <el-icon :size="24">
-              <Delete />
+              <DataAnalysis />
             </el-icon>
             <span>Аналитика</span>
           </div>
         </el-menu-item>
+        <el-menu-item index="/plans">
+          <div class="menu-item-text">
+            <el-icon :size="24">
+              <Calendar />
+            </el-icon>
+            <span>Планы</span>
+          </div>
+        </el-menu-item>
       </el-menu>
     </nav>
+    <div class="footer-bar">
+      <span class="left_part">
+        Made by
+        <el-link target="_blank" href="https://github.com/iskandert">@iskandert</el-link>
+      </span>
+    </div>
   </div>
 </template>
 <script>
 import { shallowRef } from 'vue'
-import { Setting, Close, User, Delete } from '@element-plus/icons-vue'
+import {
+  House,
+  Clock,
+  Calendar,
+  DataAnalysis
+} from '@element-plus/icons-vue'
 
 export default {
   components: {
-    Setting,
-    User,
-    Close,
-    Delete,
+    House,
+    Clock,
+    Calendar,
+    DataAnalysis
   },
   setup() {
     return {
-      iconSetting: shallowRef(Setting),
-      iconUser: shallowRef(User),
-      iconExit: shallowRef(Close),
-      iconDelete: shallowRef(Delete),
+      // iconSetting: shallowRef(Tools),
     }
   },
   computed: {},
@@ -82,6 +90,11 @@ export default {
   padding: 0;
 }
 
+.menu.el-menu .el-menu-item:hover,
+.menu.el-menu .el-menu-item:focus {
+  background-color: var(--el-color-primary-light-9);
+}
+
 .menu-item-text {
   display: flex;
   flex-direction: column;
@@ -97,9 +110,31 @@ export default {
   line-height: 1;
 }
 
+.footer-bar {
+  display: none;
+}
+
 @media (min-width: 768px) {
-  .menu.el-menu {
+  nav {
     display: none;
+  }
+
+  .footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: var(--footer-height);
+  }
+
+  .footer-bar>.left_part,
+  .footer-bar>.left_part :deep(span) {
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .footer-bar>.left_part,
+  .footer-bar>.left_part :deep(span.el-link__inner:not(:hover)) {
+    color: var(--el-color-gray-light-5);
   }
 }
 </style>
