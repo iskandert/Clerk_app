@@ -158,7 +158,7 @@ p {
   margin: 0;
 }
 
-:not(.el-button, .menu-item-text)>span:not(.el-link__inner),
+:not(.el-button, .menu-item-text, .el-message-box__title)>span:not(.el-link__inner),
 p {
   font-size: 14px;
   color: var(--el-text-color-regular);
