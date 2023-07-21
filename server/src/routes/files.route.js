@@ -15,8 +15,9 @@ class FilesRoute extends Route {
 
   initRoutes = () => {
     this.router.get(`/meta`, this.query, this.controller.getMeta, this.response)
-    this.router.delete(`/all`, this.query, this.controller.deleteAll, this.response)
-    this.router.get(`/all`, this.query, this.controller.getAll, this.response)
+    this.router.delete(`/data`, this.query, this.controller.deleteAll, this.response)
+    this.router.get(`/data`, this.query, this.controller.getAll, this.response)
+    this.router.put(`/data/:_id`, this.query, this.controller.updateOne, this.response)
   }
 }
 

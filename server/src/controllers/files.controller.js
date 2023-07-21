@@ -8,7 +8,7 @@ class FilesController extends Controller {
   constructor() {
     super()
 
-    this.initController([this.getMeta, this.getAll, this.deleteAll])
+    this.initController([this.getMeta, this.getAll, this.deleteAll, this.updateOne])
   }
 
   deleteAll = async (req, res, next) => {
@@ -65,10 +65,19 @@ class FilesController extends Controller {
 
   getMeta = async (req, res, next) => {
     const auth = req.headers.authorization
-    console.log('controller files')
     const files = await this.repository.getAppMeta(auth)
-    console.log('get files')
     return this.createResponse(200, files)
+  }
+
+  updateOne = async (req, res, next) => {
+    const auth = req.headers.authorization
+    const resp = await this.repository.updateAppFile(auth, {
+      fileId: req.params._id,
+      fileName: req.body.name,
+      fileData: req.body.data,
+    })
+    console.log('controller updateOne:', resp)
+    return this.createResponse(200, resp)
   }
 }
 

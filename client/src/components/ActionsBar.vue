@@ -4,6 +4,7 @@
       <button @click="getMeta">Get Files Meta</button>
       <button @click="deleteAllData">Delete App Data</button>
       <button @click="getAllData">Init & Get All Data</button>
+      <button @click="saveChanges">Change Data</button>
     </div>
     <pre>{{ filesComp }}</pre>
   </div>
@@ -20,7 +21,7 @@ export default {
       return this.$store.getters.isLoggedIn
     },
     filesComp() {
-      return this.$store.getters.getList('all')
+      return this.$store.getters.getList('data')
     },
   },
   methods: {
@@ -34,14 +35,34 @@ export default {
     },
     async deleteAllData() {
       try {
-        await this.$store.dispatch('deleteDataList', { col: 'all' })
+        await this.$store.dispatch('deleteDataList', { col: 'data' })
       } catch (err) {
         console.log('error', err)
       }
     },
     async getAllData() {
       try {
-        await this.$store.dispatch('getDataList', { col: 'all' })
+        await this.$store.dispatch('getDataList', { col: 'data' })
+      } catch (err) {
+        console.log('error', err)
+      }
+    },
+    async saveChanges() {
+      try {
+        let config = this.$store.getters['getList']('data/config')
+        this.$store.commit('SET_SUP_DATA', {
+          f: 'data/config', data: {
+            ...config,
+            data: { success: 'yesss' }
+          }
+        })
+        config = this.$store.getters['getList']('data/config')
+        const res = await this.$store.dispatch('saveDataChanges', {
+          col: 'data',
+          id: config.fileId,
+          payload: config
+        })
+        console.log(res);
       } catch (err) {
         console.log('error', err)
       }

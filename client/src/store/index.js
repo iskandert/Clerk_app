@@ -13,7 +13,7 @@ const getDefaultState = () => {
     loadState: false,
     isMobileSize: false,
     meta: [],
-    all: {},
+    data: {},
     // viewportSize: getInitWidth(layoutSizing), // xs, sm, md, lg, xl
   }
 }
@@ -35,6 +35,8 @@ export default createStore({
       return state.isMobileSize
     },
     getList: (state) => (col) => {
+      let colParts = col.split('/')
+      if (colParts.length === 2) return state[colParts[0]][colParts[1]]
       return state[col]
     },
     // getViewportSize: (state) => (size) => {
@@ -60,7 +62,7 @@ export default createStore({
       state[f] = data
     },
     SET_ALL_DATA: (state, { data }) => {
-      state.all = data
+      state.data = data
     },
     SET_LOAD_STATE: (state, value) => {
       state.loadState = value
@@ -105,7 +107,7 @@ export default createStore({
         console.log('dispatch')
         const res = await api.getData(payload)
         console.log(res)
-        if (payload.col === 'all') commit('SET_ALL_DATA', { data: res.data })
+        if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
         else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
       } catch (err) {
         console.log(err)
@@ -114,8 +116,18 @@ export default createStore({
     async deleteDataList({ commit }, payload) {
       try {
         const res = await api.deleteData(payload)
-        if (payload.col === 'all') commit('SET_ALL_DATA', { data: res.data })
+        if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
         else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
+      } catch (e) {
+        throw e
+      }
+    },
+    async saveDataChanges({ commit }, payload) {
+      try {
+        const res = await api.putData(payload)
+        // if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
+        // else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
+        return res
       } catch (e) {
         throw e
       }

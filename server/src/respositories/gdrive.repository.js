@@ -94,6 +94,27 @@ class GDriveRepository extends Repository {
       deleteFile()
     }
   }
+
+  updateAppFile = async (accessToken, { fileId, fileData, fileName }) => {
+    console.log('repo files')
+    const oauth2Client = new OAuth2(...oauthOptions)
+    oauth2Client.setCredentials({ access_token: accessToken })
+    const { deleteFile, fileOpts } = await this.createFile(fileData, fileName)
+    try {
+      const resp = await drive.files.update({
+        auth: oauth2Client,
+        fileId,
+        media: fileOpts,
+      })
+      console.log('Updated:', resp)
+      return resp.data
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      deleteFile()
+    }
+  }
 }
 
 export default GDriveRepository
