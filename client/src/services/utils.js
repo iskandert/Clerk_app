@@ -23,8 +23,18 @@ async function notifyWrap(obj) {
   }
 }
 
+function cloneByJSON(obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
+function isEqual(obj1, obj2) {
+  return JSON.stringify(obj1) === JSON.stringify(obj2)
+}
+
 export {
   //
   setValueAfterDelay,
   notifyWrap,
+  cloneByJSON,
+  isEqual,
 }

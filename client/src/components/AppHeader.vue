@@ -98,7 +98,7 @@ export default {
           confirmButtonClass: 'el-button--danger',
           type: 'warning'
         })
-        await this.$store.dispatch('deleteDataList', { col: 'all' })
+        await this.$store.dispatch('deleteDataList', { col: 'data' })
         this.$message({
           type: 'success',
           message: 'Удалено'

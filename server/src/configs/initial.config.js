@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import dayjs from 'dayjs'
 
 const defaultCategories = {
   income: [
@@ -40,28 +41,33 @@ const initEntities = () => {
   return {
     tables: [
       {
+        _id: uuidv4(),
         name: 'План 1',
         plans_id: [],
-        _id: uuidv4(),
+        _createdAt: dayjs().format(),
       },
     ],
     categories: [
       ...defaultCategories.income.map((name) => ({
+        _id: uuidv4(),
         name,
         type: 'income',
-        _id: uuidv4(),
+        kind: 'default',
+        _createdAt: dayjs().format(),
       })),
       ...defaultCategories.expense.map((name) => ({
+        _id: uuidv4(),
         name,
         type: 'expense',
-        _id: uuidv4(),
+        kind: 'default',
+        _createdAt: dayjs().format(),
       })),
     ],
+    actions: [],
+    plans: [],
     config: {
       startBalance: 0,
     },
-    actions: [],
-    plans: [],
   }
 }
 

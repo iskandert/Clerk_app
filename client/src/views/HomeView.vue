@@ -18,7 +18,7 @@
             </el-icon>
           </div>
         </div>
-        <el-button type="primary" round>Добавить</el-button>
+        <el-button class="mobile-adding" :icon="iconPlus" type="primary" round>Добавить</el-button>
         <el-card class="adding_form">
           <h5>Быстрое добавление</h5>
           <el-form label-position="top">
@@ -45,6 +45,9 @@
           </el-form>
           <div class="link">
             <el-link>Дополнительные настройки</el-link>
+          </div>
+          <div class="adding_form__button">
+            <el-button :icon="iconPlus" round>Добавить</el-button>
           </div>
         </el-card>
       </el-card>
@@ -93,11 +96,12 @@
   </div>
 </template>
 <script>
-import ActionsBar from '../components/ActionsBar.vue'
+import { shallowRef } from 'vue'
 import {
   Clock,
   Calendar,
-  DataAnalysis
+  DataAnalysis,
+  CirclePlusFilled
 } from '@element-plus/icons-vue'
 
 export default {
@@ -105,6 +109,11 @@ export default {
     Clock,
     Calendar,
     DataAnalysis
+  },
+  setup() {
+    return {
+      iconPlus: shallowRef(CirclePlusFilled)
+    }
   },
   data() {
     return {
@@ -168,11 +177,18 @@ export default {
 .adding_form .link {
   display: block;
   text-align: right;
+  margin-top: -8px;
 }
 
 .adding_form .el-link {
   --el-link-text-color: var(--el-color-transparent);
   --el-link-hover-text-color: var(--el-color-white);
+}
+
+.adding_form .adding_form__button {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 @media (min-width: 768px) {
@@ -181,7 +197,7 @@ export default {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 
-  .actions_card .el-button {
+  .actions_card .el-button.mobile-adding {
     display: none;
   }
 
