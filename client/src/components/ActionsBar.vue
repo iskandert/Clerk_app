@@ -11,6 +11,8 @@
 </template>
 
 <script>
+import { notifyWrap } from '../services/utils'
+import { Config } from '../services/changings'
 
 export default {
   data() {
@@ -49,21 +51,30 @@ export default {
     },
     async saveChanges() {
       try {
-        let config = this.$store.getters['getList']('data/config')
-        this.$store.commit('SET_SUP_DATA', {
-          f: 'data/config', data: {
-            ...config,
-            data: { success: 'yesss' }
-          }
+        // let config = this.$store.getters['getList']('data/config')
+        // this.$store.commit('SET_SUP_DATA', {
+        //   f: 'data/config', data: {
+        //     ...config,
+        //     data: { success: 'yesss' }
+        //   }
+        // })
+        // config = this.$store.getters['getList']('data/config')
+        const config = new Config(this.$store.getters['getAllState'])
+        const changes = config.change({
+          another_test: 'haaah'
         })
-        config = this.$store.getters['getList']('data/config')
-        const res = await this.$store.dispatch('saveDataChanges', {
-          col: 'data',
-          id: config.fileId,
-          payload: config
-        })
+
+        const res = await this.$store.dispatch('saveDataChanges', changes)
+        // const res = await this.$store.dispatch('saveDataChanges', {
+        //   col: 'data',
+        //   field: 'config',
+        //   data: {
+        //     test5: 'foooo'
+        //   }
+        // })
         console.log(res);
       } catch (err) {
+        notifyWrap(err)
         console.log('error', err)
       }
     },

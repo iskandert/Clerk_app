@@ -23,11 +23,11 @@ export class Entities {
     return entity
   }
   _add(obj) {
-    return this.state[this.field].push(obj)
+    return this.state[this.field].data.push(obj)
   }
   _find(id) {
     let index
-    const entity = this.state[this.field].find(({ _id }, idx) => {
+    const entity = this.state[this.field].data.find(({ _id }, idx) => {
       if (_id !== id) return false
       index = idx
       return true
@@ -38,14 +38,14 @@ export class Entities {
     return Object.assign(target, source)
   }
   _delete(index) {
-    return this.state[this.field].splice(index, 1)
+    return this.state[this.field].data.splice(index, 1)
   }
   getResult() {
     // return { [this.field]: this.state[this.field] }
     return [
       {
         field: this.field,
-        data: this.state[this.field],
+        data: this.state[this.field].data,
       },
     ]
   }
@@ -86,9 +86,9 @@ export class Tables extends Entities {
   //   // If unusable plans exist, delete these plans entities
   // }
   delete(id) {
-    if (this.state[this.field].length < 2) throw new Error('Нельзя удалить последнюю таблицу')
+    if (this.state[this.field].data.length < 2) throw new Error('Нельзя удалить последнюю таблицу')
     const { entity, index } = this._find(id)
-    // const child_tables = this.state[this.field].filter(({inherited_id}) => inherited_id === entity._id)
+    // const child_tables = this.state[this.field].data.filter(({inherited_id}) => inherited_id === entity._id)
     // if (child_tables.length > 0) {
     //   // If this table has children, in every entity delete inferited_id field
     //   // (or change on id of deleting table parent),
@@ -120,7 +120,7 @@ export class Categories extends Entities {
     const { entity, index } = this._find(id)
     const result = []
 
-    const categ_actions = this.state.actions.filter(({ category_id }) => entity._id === category_id)
+    const categ_actions = this.state.actions.data.filter(({ category_id }) => entity._id === category_id)
     if (categ_actions.length) {
       const actions = new Actions(this.state)
       categ_actions.forEach((action) => {
@@ -136,7 +136,7 @@ export class Categories extends Entities {
       })
     }
 
-    const categ_plans = this.state.plans.filter(({ category_id }) => entity._id === category_id)
+    const categ_plans = this.state.plans.data.filter(({ category_id }) => entity._id === category_id)
     if (categ_plans.length) {
       const plans = new Plans(this.state)
       categ_plans.forEach((plan) => {
@@ -228,7 +228,7 @@ export class Plans extends Entities {
     result.concat(this.getResult())
 
     const tables = new Tables(this.state)
-    for (const table of current_table_id ? [tables._find(current_table_id)] : tables.state.tables) {
+    for (const table of current_table_id ? [tables._find(current_table_id)] : tables.state.tables.data) {
       table.plans_id.push(plan._id)
     }
     result.concat(tables.getResult())
@@ -255,9 +255,9 @@ export class Plans extends Entities {
 
 export class Config extends Entities {
   constructor(state) {
-    this.state = state
-    this.field = 'categories'
-    this.schema = schemas.category
+    super(state)
+    this.field = 'config'
+    this.schema = schemas.config
     delete this._generateId
     delete this._create
     delete this._add
@@ -267,7 +267,7 @@ export class Config extends Entities {
     delete this.delete
   }
   change(obj) {
-    this._change(this.state[this.field], obj)
+    this._change(this.state[this.field].data, obj)
     return this.getResult()
   }
 }

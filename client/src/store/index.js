@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import api from '../services/api'
 import axios from 'axios'
-import { setValueAfterDelay } from '../services/utils'
+import { cloneByJSON, setValueAfterDelay } from '../services/utils'
 
 const getDefaultState = () => {
   return {
@@ -35,10 +35,11 @@ export default createStore({
       return state.isMobileSize
     },
     getList: (state) => (col) => {
-      let colParts = col.split('/')
+      let colParts = col.split('/').filter((str) => str)
       if (colParts.length === 2) return state[colParts[0]][colParts[1]]
-      return state[col]
+      return state[colParts[0]]
     },
+    getAllState: (state) => state.data,
     // getViewportSize: (state) => (size) => {
     //   if (typeof size === 'string') {
     //     return state.viewportSize === size
@@ -57,9 +58,14 @@ export default createStore({
       state.user = user
     },
     SET_SUP_DATA: (state, { f, data }) => {
-      let colParts = f.split('/')
+      let colParts = f.split('/').filter((str) => str)
       if (colParts.length === 2) return (state[colParts[0]][colParts[1]] = data)
-      state[f] = data
+      state[colParts[0]] = data
+    },
+    SET_COL_DATA: (state, { f, data }) => {
+      let colParts = f.split('/').filter((str) => str)
+      if (colParts.length === 2) return (state[colParts[0]][colParts[1]].data = data)
+      state[colParts[0]].data = data
     },
     SET_ALL_DATA: (state, { data }) => {
       state.data = data
@@ -122,9 +128,31 @@ export default createStore({
         throw e
       }
     },
-    async saveDataChanges({ commit }, payload) {
+    async saveDataChanges({ commit, getters }, payload) {
+      const setUpData = ({ field, data, col = 'data' }) => {
+        const { fileId, name } = getters.getList(`data/${field}`)
+        return {
+          col,
+          id: fileId,
+          payload: {
+            name,
+            data,
+          },
+          field,
+        }
+      }
+      let options
+      if (Array.isArray(payload)) {
+        options = cloneByJSON(payload).map(setUpData)
+      } else options = [setUpData(cloneByJSON(payload))]
       try {
-        const res = await api.putData(payload)
+        const res = await Promise.all(
+          options.map((opts) => {
+            commit('SET_COL_DATA', { f: `${opts.col}/${opts.field}`, data: opts.payload.data })
+            return api.putData(opts)
+          })
+        )
+        // const res = await api.putData(options)
         // if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
         // else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
         return res
