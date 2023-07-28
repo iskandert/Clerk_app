@@ -3,13 +3,9 @@ import schemas from './schemas'
 import { cloneByJSON, isEqual } from './utils'
 import { v4 as uuidv4 } from 'uuid'
 import store from '../store'
-// import { ElMessageBox } from 'element-plus'
-// const { alert: elAlert, confirm: elConfirm, prompt: elPrompt } = ElMessageBox
-// import router from '../router'
 
 export class Entities {
-  constructor(state) {
-    // this.state = cloneByJSON(state)
+  constructor() {
     this.state = cloneByJSON(store.getters.getAllData)
   }
   _generateId() {
@@ -43,7 +39,6 @@ export class Entities {
     return this.state[this.field].data.splice(index, 1)
   }
   getResult() {
-    // return { [this.field]: this.state[this.field] }
     return [
       {
         field: this.field,
@@ -77,7 +72,7 @@ export class Tables extends Entities {
   // change(obj) {
   //   const { entity, index } = this._find(obj._id)
   //   const beforeChanges = cloneByJSON(entity)
-  //   const result = this.change(obj)
+  //   let result = this.change(obj)
   //   if (isEqual(result[this.field][index].plans_id, beforeChanges.plans_id)) return result
   //   const unusable_plans_id = []
   //   result[this.field].forEach(({plans_id}) => {
@@ -97,15 +92,14 @@ export class Tables extends Entities {
     //   // copy fields plans_id into child tables
     // }
     this._delete(index)
-    const result = this.getResult()
+    let result = this.getResult()
 
     if (entity.plans_id.length) {
       const plans = new Plans(this.state)
       entity.plans_id.forEach((plan_id) => {
         plans.delete(plan_id)
       })
-      // Object.assign(result, plans.getResult())
-      result.concat(plans.getResult())
+      result = result.concat(plans.getResult())
     }
 
     return result
@@ -118,9 +112,9 @@ export class Categories extends Entities {
     this.field = 'categories'
     this.schema = schemas.category
   }
-  delete(id, { redefined_category_id }) {
+  delete(id, { redefined_category_id } = {}) {
     const { entity, index } = this._find(id)
-    const result = []
+    let result = []
 
     const categ_actions = this.state.actions.data.filter(({ category_id }) => entity._id === category_id)
     if (categ_actions.length) {
@@ -133,8 +127,7 @@ export class Categories extends Entities {
           })
         }
         actions.delete(action._id)
-        // Object.assign(result, actions.getResult())
-        result.concat(actions.getResult())
+        result = result.concat(actions.getResult())
       })
     }
 
@@ -149,14 +142,12 @@ export class Categories extends Entities {
           })
         }
         plans.delete(plan._id)
-        // Object.assign(result, plans.getResult())
-        result.concat(plans.getResult())
+        result = result.concat(plans.getResult())
       })
     }
 
     this._delete(index)
-    // Object.assign(result, this.getResult())
-    result.concat(this.getResult())
+    result = result.concat(this.getResult())
 
     return result
     // if (categ_actions.length || categ_plans.length) {
@@ -188,21 +179,23 @@ export class Actions extends Entities {
     this.field = 'actions'
     this.schema = schemas.action
   }
-  add(obj, { new_category_settings = {} }) {
+  add(obj, { new_category_settings = {} } = {}) {
     const actionSettings = cloneByJSON(obj)
-    const result = []
+    let result = []
 
     if (actionSettings.category_id === 'new') {
       const categories = new Categories(this.state)
       const newCategory = categories._create(new_category_settings)
       categories._add(newCategory)
       actionSettings.category_id = newCategory._id
-      result.concat(categories.getResult())
+      result = result.concat(categories.getResult())
     }
 
-    super.add(actionSettings)
-    result.concat(this.getResult())
-
+    const action = this._create(actionSettings)
+    action.date = dayjs(action.date).format()
+    this._add(action)
+    result = result.concat(this.getResult())
+    console.log(result)
     return result
   }
 }
@@ -213,32 +206,33 @@ export class Plans extends Entities {
     this.field = 'plans'
     this.schema = schemas.plan
   }
-  add(obj, { new_category_settings = {}, current_table_id }) {
+  add(obj, { new_category_settings = {}, current_table_id } = {}) {
     const planSettings = cloneByJSON(obj)
-    const result = []
+    let result = []
 
     if (planSettings.category_id === 'new') {
       const categories = new Categories(this.state)
       const newCategory = categories._create(new_category_settings)
       categories._add(newCategory)
       planSettings.category_id = newCategory._id
-      result.concat(categories.getResult())
+      result = result.concat(categories.getResult())
     }
 
     const plan = this._create(planSettings)
+    plan.date = dayjs(plan.date).format()
     this._add(plan)
-    result.concat(this.getResult())
+    result = result.concat(this.getResult())
 
     const tables = new Tables(this.state)
     for (const table of current_table_id ? [tables._find(current_table_id)] : tables.state.tables.data) {
       table.plans_id.push(plan._id)
     }
-    result.concat(tables.getResult())
+    result = result.concat(tables.getResult())
 
     return result
   }
   delete(id) {
-    const result = []
+    let result = []
 
     const tables = new Tables(this.state)
     tables.forEach((table) => {
@@ -246,10 +240,10 @@ export class Plans extends Entities {
       if (plan_id_index < 0) return
       table.plans_id.splice(plan_id_index, 1)
     })
-    result.concat(tables.getResult())
+    result = result.concat(tables.getResult())
 
     super.delete(id)
-    result.concat(this.getResult())
+    result = result.concat(this.getResult())
 
     return result
   }
@@ -269,7 +263,11 @@ export class Config extends Entities {
     delete this.delete
   }
   change(obj) {
-    this._change(this.state[this.field].data, obj)
+    let configSettings = cloneByJSON(obj)
+    if (configSettings.checked_balance_date) {
+      configSettings.checked_balance_date = dayjs(configSettings.checked_balance_date).format()
+    }
+    this._change(this.state[this.field].data, configSettings)
     return this.getResult()
   }
 }

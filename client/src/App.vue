@@ -29,6 +29,7 @@ export default {
   --el-color-primary-light-7: #9ce7ee !important;
   --el-color-primary-light-8: #bbf2f4 !important;
   --el-color-primary-light-9: #dbf6f9 !important;
+  --el-color-primary-dark-1: #1297a7 !important;
   --el-color-primary-dark-2: #176d77 !important;
 
   --el-color-gray: #c5dddb;
@@ -164,15 +165,26 @@ p {
   color: var(--el-text-color-regular);
 }
 
-.el-card:has(:is(h1, h2, h3, h4, h5, h6)>.el-link:hover) {
+.el-card:has(:is(h1, h2, h3, h4, h5, h6)>.el-link:hover),
+.el-card.primary-shadow.is-always-shadow,
+.primary-shadow {
   box-shadow: var(--el-box-shadow-primary);
 }
 
 div.el-form-item {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
-.el-form-item__content>div {
+.el-form-item__content>div,
+.el-form-item__content>div.el-input {
   width: 100%;
+}
+
+.el-dialog__body>:first-child>h5:first-child {
+  display: none;
+}
+
+div.el-dialog__body {
+  padding-top: 0;
 }
 </style>

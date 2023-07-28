@@ -17,7 +17,7 @@
                   <div class="icon"></div>
                   <p class="text">
                   <p class="category">{{ getEntityField(categoriesStored, action.category_id) }}</p>
-                  <span class="comment">{{ action.comment }}</span>
+                  <span class="comment">{{ action.comment || 'Без комментария' }}</span>
                   </p>
                   <div class="sum" :class="getActionClass(action.category_id)">
                     <el-icon class="symbol plus" :size="10">
@@ -36,6 +36,8 @@
                   </div>
                 </div>
               </template>
+              <el-empty v-if="!actionsByDays?.length" description="Сохраненных операций пока нет"
+                :image-size="163"></el-empty>
             </div>
           </el-scrollbar>
         </el-card>
@@ -46,20 +48,41 @@
         <el-card>Планы</el-card>
       </div>
       <div class="form_desktop__container">
-        <el-card>Форма</el-card>
+        <el-card class="primary-shadow">
+          <ActionsForm class="light" mode="full" />
+        </el-card>
       </div>
     </div>
+    <div class="adding-button">
+      <el-button @click="openActionDialog" class="primary-shadow" type="primary" size="large" round
+        :icon="iconPlus">Добавить операцию</el-button>
+    </div>
+
+    <el-dialog width="100vw" v-model="actionDialog" :append-to-body="true">
+      <template #header>
+        <h4>Добавить операцию</h4>
+      </template>
+      <ActionsForm mode="full" />
+    </el-dialog>
   </div>
 </template>
 <script>
-import ActionsBar from '../components/ActionsBar.vue'
+import { shallowRef } from 'vue'
+import ActionsForm from '../components/ActionsForm.vue'
 import { getEntityField, getFormattedCount } from '../services/utils'
-import { Lock, Unlock, Plus, Minus } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, Minus, CirclePlusFilled } from '@element-plus/icons-vue'
 
 export default {
-  components: { ActionsBar, Lock, Unlock, Plus, Minus },
+  components: { Lock, Unlock, Plus, Minus, ActionsForm },
+  setup() {
+    return {
+      // iconPlus: shallowRef(Plus),
+      iconPlus: shallowRef(CirclePlusFilled),
+    }
+  },
   data() {
     return {
+      actionDialog: false,
       //
       getEntityField,
       getFormattedCount
@@ -88,7 +111,7 @@ export default {
           day: displayedDate,
           actions: this.actionsStored
             .filter(({ date }) => date.split('T')[0] === dateStr)
-            .sort((a, b) => new Date(b) - new Date(a))
+            .sort((a, b) => new Date(b._createdAt) - new Date(a._createdAt))
         }
       })
     }
@@ -98,7 +121,13 @@ export default {
       let type = getEntityField(this.categoriesStored, category_id, 'type')
       let kind = getEntityField(this.categoriesStored, category_id, 'kind')
       return type + ' ' + kind
+    },
+    openActionDialog() {
+      this.actionDialog = true
     }
+  },
+  mounted() {
+    if (this.$route.query.mobile) this.actionDialog = true
   },
 }
 </script>
@@ -118,6 +147,10 @@ export default {
 
 .right-col {
   display: none;
+}
+
+.left-col {
+  margin-bottom: 56px;
 }
 
 /* fixed .range__container on mobile */
@@ -208,7 +241,27 @@ export default {
   display: flex;
 }
 
+.form_desktop__container .el-card {
+  background-color: var(--el-color-primary-dark-1);
+  border: none;
+}
+
+.adding-button {
+  position: fixed;
+  top: calc(100vh - var(--footer-height-mobile));
+  top: calc(100dvh - var(--footer-height-mobile));
+  transform: translateY(calc(-100% - 16px));
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: center;
+}
+
 @media (min-width: 768px) {
+
+  .left-col {
+    margin-bottom: 0;
+  }
 
   .el-scrollbar,
   :deep(.el-scrollbar__wrap),
@@ -244,6 +297,10 @@ export default {
 
   .right-col {
     display: flex;
+  }
+
+  .adding-button {
+    display: none;
   }
 }
 </style>

@@ -1,6 +1,5 @@
 <template>
-  <div class="container">
-
+  <div class="view-container">
     <div class="actions">
       <el-card class="actions_card">
         <div class="title">
@@ -18,37 +17,9 @@
             </el-icon>
           </div>
         </div>
-        <el-button class="mobile-adding" :icon="iconPlus" type="primary" round>Добавить</el-button>
+        <el-button @click="openFullForm" class="mobile-adding" :icon="iconPlus" type="primary" round>Добавить</el-button>
         <el-card class="adding_form">
-          <h5>Быстрое добавление</h5>
-          <el-form label-position="top">
-            <el-form-item label="Сумма операции">
-              <el-input-number :min="1" :step="100" />
-            </el-form-item>
-            <el-form-item label="Категория операции">
-              <el-select filterable>
-                <el-option-group label="Расходы">
-                  <el-option value="Еда" label="Еда"></el-option>
-                  <el-option value="Транспорт" label="Транспорт"></el-option>
-                  <el-option value="ЖКХ" label="ЖКХ"></el-option>
-                </el-option-group>
-                <el-option-group label="Доходы">
-                  <el-option value="Подарки" label="Подарки"></el-option>
-                  <el-option value="Зарплата" label="Зарплата"></el-option>
-                </el-option-group>
-                <el-option-group label="Накопления">
-                  <el-option value="Крупное" label="Крупное"></el-option>
-                  <el-option value="Путешествия" label="Путешествия"></el-option>
-                </el-option-group>
-              </el-select>
-            </el-form-item>
-          </el-form>
-          <div class="link">
-            <el-link>Дополнительные настройки</el-link>
-          </div>
-          <div class="adding_form__button">
-            <el-button :icon="iconPlus" round>Добавить</el-button>
-          </div>
+          <ActionsForm class="light" />
         </el-card>
       </el-card>
     </div>
@@ -103,12 +74,14 @@ import {
   DataAnalysis,
   CirclePlusFilled
 } from '@element-plus/icons-vue'
+import ActionsForm from '../components/ActionsForm.vue'
 
 export default {
   components: {
     Clock,
     Calendar,
-    DataAnalysis
+    DataAnalysis,
+    ActionsForm
   },
   setup() {
     return {
@@ -124,11 +97,14 @@ export default {
     jumpRoute(path) {
       this.$router.push({ path })
     },
-  },
+    openFullForm() {
+      this.$router.push({ path: '/actions', query: { mobile: true } })
+    },
+  }
 }
 </script>
 <style scoped>
-.container {
+.view-container {
   display: grid;
   gap: 12px;
   align-items: start;
@@ -162,10 +138,11 @@ export default {
 
 .adding_form {
   display: none;
-  background-color: var(--el-color-primary-light-3);
   box-shadow: none;
+  background-color: var(--el-color-primary-dark-1);
 }
 
+/*
 .adding_form :is(h5, p) {
   color: var(--el-color-white);
 }
@@ -189,11 +166,11 @@ export default {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
-}
+}*/
 
 @media (min-width: 768px) {
 
-  .container {
+  .view-container {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 
