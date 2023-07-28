@@ -8,6 +8,7 @@ const defaultCategories = {
     'Зарплата 2',
     'Подарки',
     'Банк начисления',
+    'Из накоплений',
   ],
   expense: [
     //
@@ -37,6 +38,14 @@ const defaultCategories = {
   ],
 }
 
+const defaultActions = Array(112)
+  .fill()
+  .map((_, idx) => ({
+    sum: Math.round(Math.random() * 100000) / 100,
+    // category_id: `${Math.round(Math.random() * 26)}`,
+    category_id: `${idx % 28}`,
+  }))
+
 const initEntities = () => {
   return {
     tables: [
@@ -48,25 +57,38 @@ const initEntities = () => {
       },
     ],
     categories: [
-      ...defaultCategories.income.map((name) => ({
-        _id: uuidv4(),
+      ...defaultCategories.income.map((name, idx) => ({
+        // _id: uuidv4(),
+        _id: `${idx}`,
         name,
         type: 'income',
-        kind: 'default',
+        kind: idx === 4 ? 'savings' : 'default',
         _createdAt: dayjs().format(),
       })),
-      ...defaultCategories.expense.map((name) => ({
-        _id: uuidv4(),
+      ...defaultCategories.expense.map((name, idx) => ({
+        // _id: uuidv4(),
+        _id: `${idx + 5}`,
         name,
         type: 'expense',
-        kind: 'default',
+        kind: [12, 20].includes(idx + 5) ? 'savings' : 'default',
         _createdAt: dayjs().format(),
       })),
     ],
-    actions: [],
+    // actions: [],
+    actions: defaultActions.map((act) => ({
+      ...act,
+      _id: uuidv4(),
+      comment: 'Комментарий',
+      date: dayjs()
+        .subtract(Math.floor(Math.random() * 14), 'day')
+        .format(),
+      _createdAt: dayjs().format(),
+    })),
     plans: [],
     config: {
-      startBalance: 0,
+      start_balance: 0,
+      checked_balance: null,
+      checked_balance_date: '',
     },
   }
 }

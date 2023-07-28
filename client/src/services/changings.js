@@ -2,13 +2,15 @@ import dayjs from 'dayjs'
 import schemas from './schemas'
 import { cloneByJSON, isEqual } from './utils'
 import { v4 as uuidv4 } from 'uuid'
+import store from '../store'
 // import { ElMessageBox } from 'element-plus'
 // const { alert: elAlert, confirm: elConfirm, prompt: elPrompt } = ElMessageBox
 // import router from '../router'
 
 export class Entities {
   constructor(state) {
-    this.state = cloneByJSON(state)
+    // this.state = cloneByJSON(state)
+    this.state = cloneByJSON(store.getters.getAllData)
   }
   _generateId() {
     return uuidv4()

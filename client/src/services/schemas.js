@@ -29,6 +29,8 @@ export default {
     _createdAt: '',
   },
   config: {
-    startBalance: 0,
+    start_balance: 0,
+    checked_balance: null,
+    checked_balance_date: '',
   },
 }

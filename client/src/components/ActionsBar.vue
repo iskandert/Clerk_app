@@ -59,7 +59,7 @@ export default {
         //   }
         // })
         // config = this.$store.getters['getList']('data/config')
-        const config = new Config(this.$store.getters['getAllState'])
+        const config = new Config(this.$store.getters['getAllData'])
         const changes = config.change({
           another_test: 'haaah'
         })

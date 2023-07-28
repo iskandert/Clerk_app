@@ -27,6 +27,7 @@
 <script>
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
+import { notifyWrap } from '../services/utils'
 
 export default {
   components: {
@@ -35,7 +36,19 @@ export default {
   },
   data() {
     return {}
-  }
+  },
+  methods: {
+    async getAllData() {
+      try {
+        await this.$store.dispatch('getDataList', { col: 'data' })
+      } catch (err) {
+        notifyWrap(err)
+      }
+    },
+  },
+  mounted() {
+    this.getAllData()
+  },
 }
 </script>
 <style>
@@ -65,6 +78,7 @@ header {
   left: 0;
   right: 0;
   background-color: var(--el-color-primary-dark-2);
+  z-index: 2000;
 }
 
 main {
@@ -85,7 +99,7 @@ footer {
 .section-container {
   width: calc(100% - 32px);
   margin: 0 auto;
-  overflow: hidden;
+  /*overflow: hidden;*/
   display: flex;
   flex-direction: column;
 }

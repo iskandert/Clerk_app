@@ -39,7 +39,10 @@ export default createStore({
       if (colParts.length === 2) return state[colParts[0]][colParts[1]]
       return state[colParts[0]]
     },
-    getAllState: (state) => state.data,
+    getData: (state) => (col) => {
+      return state.data?.[col]?.data
+    },
+    getAllData: (state) => state.data,
     // getViewportSize: (state) => (size) => {
     //   if (typeof size === 'string') {
     //     return state.viewportSize === size
