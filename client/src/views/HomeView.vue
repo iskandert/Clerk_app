@@ -18,9 +18,9 @@
           </div>
         </div>
         <el-button @click="openFullForm" class="mobile-adding" :icon="iconPlus" type="primary" round>Добавить</el-button>
-        <el-card class="adding_form">
+        <div class="adding_form">
           <ActionsForm class="light" />
-        </el-card>
+        </div>
       </el-card>
     </div>
     <div class="plans">
@@ -138,35 +138,9 @@ export default {
 
 .adding_form {
   display: none;
-  box-shadow: none;
-  background-color: var(--el-color-primary-dark-1);
+  /*box-shadow: none;
+  background-color: var(--el-color-primary-dark-1);*/
 }
-
-/*
-.adding_form :is(h5, p) {
-  color: var(--el-color-white);
-}
-
-.adding_form :deep(label) {
-  color: var(--el-color-transparent-dark-2);
-}
-
-.adding_form .link {
-  display: block;
-  text-align: right;
-  margin-top: -8px;
-}
-
-.adding_form .el-link {
-  --el-link-text-color: var(--el-color-transparent);
-  --el-link-hover-text-color: var(--el-color-white);
-}
-
-.adding_form .adding_form__button {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}*/
 
 @media (min-width: 768px) {
 

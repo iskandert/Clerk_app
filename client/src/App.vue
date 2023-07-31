@@ -159,7 +159,7 @@ p {
   margin: 0;
 }
 
-:not(.el-button, .menu-item-text, .el-message-box__title)>span:not(.el-link__inner),
+:not(.el-button, .menu-item-text, .el-message-box__title)>span:not(.el-link__inner, .trigger),
 p {
   font-size: 14px;
   color: var(--el-text-color-regular);
@@ -178,10 +178,6 @@ div.el-form-item {
 .el-form-item__content>div,
 .el-form-item__content>div.el-input {
   width: 100%;
-}
-
-.el-dialog__body>:first-child>h5:first-child {
-  display: none;
 }
 
 div.el-dialog__body {

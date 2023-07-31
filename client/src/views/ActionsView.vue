@@ -16,7 +16,12 @@
                 <div class="action" v-for="(action, i) in actions" :key="i">
                   <div class="icon"></div>
                   <p class="text">
-                  <p class="category">{{ getEntityField(categoriesStored, action.category_id) }}</p>
+                  <p class="category desktop el-link el-link--default is-underline" @click="callEditAction(action)">
+                    {{ getEntityField(categoriesStored, action.category_id) }}
+                  </p>
+                  <p class="category mobile el-link el-link--default is-underline" @click="callEditAction(action, true)">
+                    {{ getEntityField(categoriesStored, action.category_id) }}
+                  </p>
                   <span class="comment">{{ action.comment || 'Без комментария' }}</span>
                   </p>
                   <div class="sum" :class="getActionClass(action.category_id)">
@@ -48,9 +53,7 @@
         <el-card>Планы</el-card>
       </div>
       <div class="form_desktop__container">
-        <el-card class="primary-shadow">
-          <ActionsForm class="light" mode="full" />
-        </el-card>
+        <ActionsForm class="light primary-shadow" mode="full" @call-to-end="handleCancel" />
       </div>
     </div>
     <div class="adding-button">
@@ -58,11 +61,11 @@
         :icon="iconPlus">Добавить операцию</el-button>
     </div>
 
-    <el-dialog width="100vw" v-model="actionDialog" :append-to-body="true">
+    <el-dialog width="100vw" v-model="actionDialog" :append-to-body="true" :before-close="handleCancel">
       <template #header>
         <h4>Добавить операцию</h4>
       </template>
-      <ActionsForm mode="full" />
+      <ActionsForm class="dialog" mode="full" @call-to-end="handleCancel" />
     </el-dialog>
   </div>
 </template>
@@ -123,12 +126,38 @@ export default {
       return type + ' ' + kind
     },
     openActionDialog() {
+      console.log('openActionDialog');
       this.actionDialog = true
+    },
+    callEditAction(action, isMobile = false) {
+      this.$router.push({
+        path: '/actions',
+        query: {
+          ...action,
+          isEdit: true,
+        },
+        replace: true
+      })
+      if (isMobile) this.actionDialog = true
+    },
+    handleCancel() {
+      this.actionDialog = false
+      this.$router.push({
+        path: '/actions',
+        query: {
+          isEdit: false,
+        },
+        replace: true
+      })
     }
   },
   mounted() {
-    if (this.$route.query.mobile) this.actionDialog = true
+    if (JSON.parse(this.$route?.query?.mobile || 'false')) this.actionDialog = true
   },
+  // updated() {
+  //   console.log('updated')
+  //   if (JSON.parse(this.$route.query.mobile)) this.actionDialog = true
+  // },
 }
 </script>
 <style scoped>
@@ -203,6 +232,12 @@ export default {
 
 .action>.text>.category {
   font-weight: bold;
+  display: block;
+  width: max-content;
+}
+
+.action>.text>.category.desktop {
+  display: none;
 }
 
 .action>.text>.comment {
@@ -239,11 +274,6 @@ export default {
 .action>.sum.income.savings>.symbol.unlock,
 .action>.sum.expense.savings>.symbol.lock {
   display: flex;
-}
-
-.form_desktop__container .el-card {
-  background-color: var(--el-color-primary-dark-1);
-  border: none;
 }
 
 .adding-button {
@@ -301,6 +331,14 @@ export default {
 
   .adding-button {
     display: none;
+  }
+
+  .action>.text>.category.mobile {
+    display: none;
+  }
+
+  .action>.text>.category.desktop {
+    display: block;
   }
 }
 </style>
