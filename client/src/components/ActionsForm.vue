@@ -35,8 +35,8 @@
               <InfoBalloon :data="['Вводите суммы через `Enter`, для вычитания из результата добавьте `-` перед суммой.',
                 'Десятичный разделитель - `.` (точка).']" />
             </template>
-            <el-input v-model="sumPart" placeholder="Please input" :formatter="replaceSumPartValue"
-              :parser="replaceSumPartValue" @keyup.enter="addSumPart"></el-input>
+            <el-input v-model="sumPart" placeholder="Введите сумму по частям" :formatter="replaceSumPartValue"
+              :parser="replaceSumPartValue" @keyup.enter="addSumPart" @blur="addSumPart"></el-input>
             <div class="sum_parts">
               <el-tag v-for="(part, idx) in sumPartsAll" :key="idx" closable @close="deleteSumPart(idx)">
                 {{ `${Math.round(+part * 100) / 100}`.replace(/\./g, ',') }}
@@ -197,6 +197,7 @@ export default {
         this.newAction[field] = this.$route.query[field]
       })
       if (JSON.parse(this.$route.query?.isEdit || 'false')) this.isEditMode = true
+      else this.isEditMode = false
       if (!this.newAction.date) this.newAction.date = new Date()
     },
     addSumPart() {

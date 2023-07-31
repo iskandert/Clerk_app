@@ -2,14 +2,45 @@
   <div class="container">
     <div class="left-col">
       <div class="range__container">
-        <el-card>Период</el-card>
+        <el-card>
+          <div class="title">
+            <h4>Сегоднябрь</h4>
+            <div class="balance">
+              <template v-if="isCheckedBalance">
+                <p class="main_balance">
+                  <el-link type="primary" @click="openBalanceDialog">
+                    Остаток:
+                  </el-link>
+                  {{ getFormattedCount(100000, 'currency') }}
+                </p>
+                <p class="with-savings_balance">
+                  <el-link type="primary" @click="openBalanceDialog">
+                    С накоплениями:
+                  </el-link>
+                  {{ getFormattedCount(120000, 'currency') }}
+                </p>
+              </template>
+              <template v-else>
+                <div class="balance_empty">
+                  <el-icon :size="13">
+                    <Warning />
+                  </el-icon>
+                  <p class="with-savings_balance">
+                    Остаток еще не сверялся
+                  </p>
+                </div>
+                <el-link type="primary" @click="openBalanceDialog">Сверить</el-link>
+              </template>
+            </div>
+          </div>
+        </el-card>
       </div>
       <div class="plans__container">
         <el-card>Планы</el-card>
       </div>
       <div class="actions__container">
         <el-card>
-          <el-scrollbar max-height="calc(100vh - var(--header-height) - var(--footer-height) - 120px)">
+          <el-scrollbar max-height="calc(100vh - var(--header-height) - var(--footer-height) - 136px)">
             <div class="actions">
               <template v-for="({ day, actions }, idx) in actionsByDays" :key="idx">
                 <h6>{{ day }}</h6>
@@ -53,7 +84,7 @@
         <el-card>Планы</el-card>
       </div>
       <div class="form_desktop__container">
-        <ActionsForm class="light primary-shadow" mode="full" @call-to-end="handleCancel" />
+        <ActionsForm class="light primary-shadow" mode="full" @call-to-end="handleCancelAction" />
       </div>
     </div>
     <div class="adding-button">
@@ -61,22 +92,31 @@
         :icon="iconPlus">Добавить операцию</el-button>
     </div>
 
-    <el-dialog width="100vw" v-model="actionDialog" :append-to-body="true" :before-close="handleCancel">
+    <el-dialog width="100vw" v-model="actionDialog" :append-to-body="true" :before-close="handleCancelAction">
       <template #header>
-        <h4>Добавить операцию</h4>
+        <h4>{{ isEditMode ? 'Редактировать' : 'Добавить' }} операцию</h4>
       </template>
-      <ActionsForm class="dialog" mode="full" @call-to-end="handleCancel" />
+      <ActionsForm class="dialog" mode="full" @call-to-end="handleCancelAction" />
+    </el-dialog>
+
+    <el-dialog width="min(100vw, 500px)" v-model="balanceDialog" :append-to-body="true"
+      :before-close="handleCancelBalance">
+      <template #header>
+        <h4>Сверить баланс</h4>
+      </template>
+      <BalanceForm @call-to-end="handleCancelBalance" />
     </el-dialog>
   </div>
 </template>
 <script>
 import { shallowRef } from 'vue'
 import ActionsForm from '../components/ActionsForm.vue'
+import BalanceForm from '../components/BalanceForm.vue'
 import { getEntityField, getFormattedCount } from '../services/utils'
-import { Lock, Unlock, Plus, Minus, CirclePlusFilled } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, Minus, CirclePlusFilled, Warning } from '@element-plus/icons-vue'
 
 export default {
-  components: { Lock, Unlock, Plus, Minus, ActionsForm },
+  components: { Lock, Unlock, Plus, Minus, ActionsForm, Warning, BalanceForm },
   setup() {
     return {
       // iconPlus: shallowRef(Plus),
@@ -86,6 +126,8 @@ export default {
   data() {
     return {
       actionDialog: false,
+      isEditMode: false,
+      balanceDialog: false,
       //
       getEntityField,
       getFormattedCount
@@ -117,6 +159,10 @@ export default {
             .sort((a, b) => new Date(b._createdAt) - new Date(a._createdAt))
         }
       })
+    },
+    isCheckedBalance() {
+      return true
+      return this.$store.getters.getData('config')?.checking_date
     }
   },
   methods: {
@@ -126,7 +172,6 @@ export default {
       return type + ' ' + kind
     },
     openActionDialog() {
-      console.log('openActionDialog');
       this.actionDialog = true
     },
     callEditAction(action, isMobile = false) {
@@ -138,10 +183,12 @@ export default {
         },
         replace: true
       })
+      this.isEditMode = true
       if (isMobile) this.actionDialog = true
     },
-    handleCancel() {
+    handleCancelAction() {
       this.actionDialog = false
+      this.isEditMode = false
       this.$router.push({
         path: '/actions',
         query: {
@@ -149,7 +196,13 @@ export default {
         },
         replace: true
       })
-    }
+    },
+    openBalanceDialog() {
+      this.balanceDialog = true
+    },
+    handleCancelBalance() {
+      this.balanceDialog = false
+    },
   },
   mounted() {
     if (JSON.parse(this.$route?.query?.mobile || 'false')) this.actionDialog = true
@@ -185,7 +238,7 @@ export default {
 /* fixed .range__container on mobile */
 /* START */
 .plans__container {
-  padding-top: 44px;
+  padding-top: 58px;
 }
 
 .range__container {
@@ -197,6 +250,39 @@ export default {
 }
 
 /* END */
+.range__container .title {
+  display: flex;
+  justify-content: space-between;
+}
+
+.range__container .title>.balance {
+  text-align: right;
+  /*font-weight: bold;*/
+}
+
+.main_balance {
+  font-weight: bold;
+}
+
+:is(.main_balance, .with-savings_balance)>.el-link {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.with-savings_balance {
+  font-size: 12px;
+}
+
+.balance_empty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.balance_empty,
+.balance_empty>.with-savings_balance {
+  color: var(--el-color-danger);
+}
 
 .el-scrollbar,
 :deep(.el-scrollbar__wrap),
@@ -285,6 +371,11 @@ export default {
   right: 16px;
   display: flex;
   justify-content: center;
+  pointer-events: none;
+}
+
+.adding-button>button {
+  pointer-events: all;
 }
 
 @media (min-width: 768px) {

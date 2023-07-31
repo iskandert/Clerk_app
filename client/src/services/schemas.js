@@ -30,7 +30,9 @@ export default {
   },
   config: {
     start_balance: 0,
+    start_savings: 0,
     checked_balance: null,
-    checked_balance_date: '',
+    checked_savings: null,
+    checking_date: '',
   },
 }
