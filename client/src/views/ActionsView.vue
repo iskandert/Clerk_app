@@ -11,13 +11,13 @@
                   <el-link type="primary" @click="openBalanceDialog">
                     Остаток:
                   </el-link>
-                  {{ getFormattedCount(100000, 'currency') }}
+                  {{ getFormattedCount(currentBalance.balance, 'currency') }}
                 </p>
                 <p class="with-savings_balance">
                   <el-link type="primary" @click="openBalanceDialog">
-                    С накоплениями:
+                    Накопления:
                   </el-link>
-                  {{ getFormattedCount(120000, 'currency') }}
+                  {{ getFormattedCount(currentBalance.savings, 'currency') }}
                 </p>
               </template>
               <template v-else>
@@ -114,6 +114,7 @@ import ActionsForm from '../components/ActionsForm.vue'
 import BalanceForm from '../components/BalanceForm.vue'
 import { getEntityField, getFormattedCount } from '../services/utils'
 import { Lock, Unlock, Plus, Minus, CirclePlusFilled, Warning } from '@element-plus/icons-vue'
+import { Config } from '../services/changings'
 
 export default {
   components: { Lock, Unlock, Plus, Minus, ActionsForm, Warning, BalanceForm },
@@ -161,15 +162,18 @@ export default {
       })
     },
     isCheckedBalance() {
-      return true
       return this.$store.getters.getData('config')?.checking_date
+    },
+    currentBalance() {
+      const config = new Config()
+      return config.getCurrent()
     }
   },
   methods: {
     getActionClass(category_id) {
+      let status = getEntityField(this.categoriesStored, category_id, 'status')
       let type = getEntityField(this.categoriesStored, category_id, 'type')
-      let kind = getEntityField(this.categoriesStored, category_id, 'kind')
-      return type + ' ' + kind
+      return status + ' ' + type
     },
     openActionDialog() {
       this.actionDialog = true

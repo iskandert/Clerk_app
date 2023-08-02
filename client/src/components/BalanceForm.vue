@@ -36,8 +36,8 @@ import InfoBalloon from '../components/InfoBalloon.vue'
 
 const clearCheck = {
   checked_balance: undefined,
-  checking_date: undefined,
   checked_savings: undefined,
+  checking_date: undefined,
 }
 
 export default {
@@ -82,9 +82,9 @@ export default {
         }
         try {
           const config = new Config()
-          // let changes = config.check(this.newCheck)
+          let changes = config.setStart(this.newCheck)
           this.cancelChecking()
-          // await this.$store.dispatch('saveDataChanges', changes)
+          await this.$store.dispatch('saveDataChanges', changes)
         } catch (err) {
           notifyWrap(err)
         }

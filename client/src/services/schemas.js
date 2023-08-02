@@ -8,8 +8,8 @@ export default {
   category: {
     _id: '',
     name: 'Расходы 1',
-    type: 'expense', // in income, expense
-    kind: 'default', // in default, savings
+    status: 'expense', // in income, expense
+    type: 'default', // in default, savings
     _createdAt: '',
   },
   action: {

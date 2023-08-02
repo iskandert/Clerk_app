@@ -38,12 +38,12 @@ const defaultCategories = {
   ],
 }
 
-const defaultActions = Array(112)
+const defaultActions = Array(5)
   .fill()
   .map((_, idx) => ({
-    sum: Math.round(Math.random() * 100000) / 100,
+    sum: Math.round(Math.random() * 10000) / 100,
     // category_id: `${Math.round(Math.random() * 26)}`,
-    category_id: `${idx % 28}`,
+    category_id: `${(idx % 28) * 2}`,
   }))
 
 const initEntities = () => {
@@ -61,16 +61,16 @@ const initEntities = () => {
         // _id: uuidv4(),
         _id: `${idx}`,
         name,
-        type: 'income',
-        kind: idx === 4 ? 'savings' : 'default',
+        status: 'income',
+        type: idx === 4 ? 'savings' : 'default',
         _createdAt: dayjs().format(),
       })),
       ...defaultCategories.expense.map((name, idx) => ({
         // _id: uuidv4(),
         _id: `${idx + 5}`,
         name,
-        type: 'expense',
-        kind: [12, 20].includes(idx + 5) ? 'savings' : 'default',
+        status: 'expense',
+        type: [12, 20].includes(idx + 5) ? 'savings' : 'default',
         _createdAt: dayjs().format(),
       })),
     ],
@@ -80,7 +80,7 @@ const initEntities = () => {
       _id: uuidv4(),
       comment: 'Комментарий',
       date: dayjs()
-        .subtract(Math.floor(Math.random() * 14), 'day')
+        .subtract(Math.floor(Math.random() * 3), 'day')
         .format(),
       _createdAt: dayjs().format(),
     })),

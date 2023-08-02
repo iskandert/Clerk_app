@@ -138,9 +138,9 @@ export default {
         savings: [],
       }
       this.categoriesStored?.forEach(category => {
-        if (category.type === 'income') return categories.income.push(category)
-        if (category.kind === 'default') return categories.expense.push(category)
-        return categories.savings.push(category)
+        if (category.type === 'savings') return categories.savings.push(category)
+        if (category.status === 'income') return categories.income.push(category)
+        return categories.expense.push(category)
       })
       return categories
     },

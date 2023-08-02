@@ -5,8 +5,9 @@ import { v4 as uuidv4 } from 'uuid'
 import store from '../store'
 
 export class Entities {
-  constructor() {
-    this.state = cloneByJSON(store.getters.getAllData)
+  constructor(state) {
+    if (state) this.state = cloneByJSON(state)
+    else this.state = cloneByJSON(store.getters.getAllData)
   }
   _generateId() {
     return uuidv4()
@@ -193,9 +194,41 @@ export class Actions extends Entities {
 
     const action = this._create(actionSettings)
     action.date = dayjs(action.date).format()
+    action.sum = +action.sum
     this._add(action)
     result = result.concat(this.getResult())
-    console.log(result)
+
+    const config = new Config(this.state)
+    config.checkStart(action)
+    result = result.concat(config.getResult())
+
+    return result
+  }
+  change(obj) {
+    let result = []
+
+    if (obj.sum !== undefined) obj.sum = +obj.sum
+    if (obj.date !== undefined) obj.date = dayjs(obj.date).format()
+
+    super.change(obj)
+    result = result.concat(this.getResult())
+
+    const config = new Config(this.state)
+    config.checkStart()
+    result = result.concat(config.getResult())
+
+    return result
+  }
+  delete(id) {
+    let result = []
+
+    super.delete(id)
+    result = result.concat(this.getResult())
+
+    const config = new Config(this.state)
+    config.checkStart()
+    result = result.concat(config.getResult())
+
     return result
   }
 }
@@ -262,12 +295,93 @@ export class Config extends Entities {
     delete this.add
     delete this.delete
   }
+  _compare_dates(date) {
+    const checking_date = this.state[this.field].data.checking_date
+    if (dayjs(date).isBefore(checking_date, 'day')) return -1
+    if (dayjs(date).isAfter(checking_date, 'day')) return 1
+    return 0
+  }
+  _round_balances() {
+    this.state[this.field].data.start_balance = Math.round(this.state[this.field].data.start_balance * 100) / 100
+    this.state[this.field].data.start_savings = Math.round(this.state[this.field].data.start_savings * 100) / 100
+  }
+  _fix_start(action) {
+    if (this._compare_dates(action.date) === 1) return
+
+    const categories = new Categories(this.state)
+    const { entity: category } = categories._find(action.category_id)
+    let isExpense = category.status === 'expense'
+
+    this.state[this.field].data.start_balance += isExpense ? action.sum : -action.sum
+    if (category.type === 'savings') {
+      this.state[this.field].data.start_savings += isExpense ? -action.sum : action.sum
+    }
+
+    this._round_balances()
+    return this.getResult()
+  }
   change(obj) {
     let configSettings = cloneByJSON(obj)
     if (configSettings.checked_balance_date) {
       configSettings.checked_balance_date = dayjs(configSettings.checked_balance_date).format()
     }
     this._change(this.state[this.field].data, configSettings)
+    this._round_balances()
     return this.getResult()
+  }
+  setStart({ checked_balance, checked_savings, checking_date }) {
+    let result = []
+
+    this.change({
+      start_balance: checked_balance,
+      start_savings: checked_savings,
+      checked_balance,
+      checked_savings,
+      checking_date: dayjs(checking_date).format(),
+    })
+
+    this.state.actions.data.forEach((action) => this._fix_start(action))
+    this._round_balances()
+    result = result.concat(this.getResult())
+
+    return result
+  }
+  checkStart(action) {
+    let result = []
+
+    if (!this.state[this.field].data.checking_date) return result
+
+    if (!action) {
+      this.change({
+        start_balance: this.state[this.field].data.checked_balance,
+        start_savings: this.state[this.field].data.checked_savings,
+      })
+      this.state.actions.data.forEach((action) => this._fix_start(action))
+    } else this._fix_start(action)
+    result = result.concat(this.getResult())
+
+    return result
+  }
+  getCurrent() {
+    const result = { balance: 0, savings: 0 }
+
+    if (!this.state[this.field]?.data?.checking_date) return result
+
+    result.balance = this.state[this.field].data.start_balance
+    result.savings = this.state[this.field].data.start_savings
+
+    this.state.actions.data.forEach((action) => {
+      const categories = new Categories(this.state)
+      const { entity: category } = categories._find(action.category_id)
+      let isExpense = category.status === 'expense'
+
+      result.balance += isExpense ? -action.sum : action.sum
+      if (category.type === 'savings') {
+        result.savings += isExpense ? action.sum : -action.sum
+      }
+    })
+    this._round_balances()
+
+    return result
   }
 }
