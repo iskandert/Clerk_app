@@ -189,6 +189,7 @@ export default {
       this.isEditMode = false
       this.$emit('call-to-end')
       this.newAction = cloneByJSON(clearAction)
+      this.newAction.date = new Date()
       this.sumPart = ''
       this.sumPartsAll = []
     },

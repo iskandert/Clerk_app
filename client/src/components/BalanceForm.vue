@@ -1,7 +1,7 @@
 <template>
   <div class="form-container">
     <el-form :model="newCheck" :rules="checkRules" label-position="top" ref="checkForm">
-      <el-form-item label="Общий баланс" prop="checked_balance">
+      <el-form-item label="Основной баланс" prop="checked_balance">
         <template #label>Общий баланс
           <InfoBalloon data="Без накоплений" />
         </template>
@@ -93,10 +93,13 @@ export default {
     cancelChecking() {
       this.$emit('call-to-end')
       this.newCheck = cloneByJSON(clearCheck)
+      this.newCheck.checking_date = new Date()
     },
   },
   watch: {},
-  mounted() { },
+  mounted() {
+    this.newCheck.checking_date = new Date()
+  },
 }
 </script>
 <style scoped>
