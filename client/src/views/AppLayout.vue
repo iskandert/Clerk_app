@@ -63,6 +63,7 @@ export default {
   height: 100vh;
   height: 100dvh;
   position: relative;
+  overflow-x: hidden;
 }
 
 header,

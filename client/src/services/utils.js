@@ -45,8 +45,16 @@ function getEntityField(list, id, field = 'name', checkField = '_id') {
   return getValue(id)
 }
 
-function getFormattedCount(num, mode = 'normal') {
-  const formatter = new Intl.NumberFormat('ru-RU')
+function getObjectFromArray(array, field = '_id') {
+  return Object.fromEntries(array.filter((item) => item[field]).map((item) => [item[field], item]))
+}
+
+function getFormattedCount(num, { mode, accuracy } = {}) {
+  mode = mode ?? 'normal'
+  accuracy = accuracy ?? 2
+  const formatter = new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: accuracy,
+  })
   if (mode === 'normal') {
     return formatter.format(num)
   }
@@ -54,8 +62,37 @@ function getFormattedCount(num, mode = 'normal') {
     return new Intl.NumberFormat('ru', {
       style: 'currency',
       currency: 'RUB',
+      maximumFractionDigits: accuracy,
     }).format(num)
   }
+}
+
+function mapObject(obj, cb, keyAccess) {
+  return Object.fromEntries(
+    Object.entries(cloneByJSON(obj)).map(([k, v]) => {
+      return !keyAccess ? [k, cb(v)] : cb(k, v)
+    })
+  )
+}
+
+function mapObjectToArr(obj, cb) {
+  return Object.entries(cloneByJSON(obj)).map(([k, v], i, arr) => {
+    return cb([k, v], i, arr)
+  })
+}
+
+function filterObject(obj, cb) {
+  return Object.fromEntries(
+    Object.entries(cloneByJSON(obj)).filter(([k, v]) => {
+      return !!cb(k, v)
+    })
+  )
+}
+
+function compareByOrder(list, v1, v2) {
+  const [idx1, idx2] = [list.indexOf(v1), list.indexOf(v2)]
+  if (idx1 === -1 || idx2 === -1) return 0
+  return idx1 - idx2
 }
 
 export {
@@ -66,4 +103,9 @@ export {
   isEqual,
   getEntityField,
   getFormattedCount,
+  mapObject,
+  mapObjectToArr,
+  filterObject,
+  getObjectFromArray,
+  compareByOrder,
 }

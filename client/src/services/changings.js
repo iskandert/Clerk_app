@@ -252,7 +252,7 @@ export class Plans extends Entities {
     }
 
     const plan = this._create(planSettings)
-    plan.date = dayjs(plan.date).format()
+    plan.date = dayjs(plan.date).format('YYYY-MM')
     this._add(plan)
     result = result.concat(this.getResult())
 

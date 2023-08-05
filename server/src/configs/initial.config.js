@@ -46,6 +46,13 @@ const defaultActions = Array(5)
     category_id: `${(idx % 28) * 2}`,
   }))
 
+const defaultPlans = Array(28 * 3)
+  .fill()
+  .map((_, idx) => ({
+    sum: Math.round(Math.random() * 100000) / 100,
+    category_id: `${idx % 28}`,
+  }))
+
 const initEntities = () => {
   return {
     tables: [
@@ -84,7 +91,16 @@ const initEntities = () => {
         .format(),
       _createdAt: dayjs().format(),
     })),
-    plans: [],
+    // plans: [],
+    plans: defaultPlans.map((plan, idx) => ({
+      ...plan,
+      _id: uuidv4(),
+      comment: 'Комментарий',
+      date: dayjs()
+        .add(Math.floor(idx / 28), 'month')
+        .format('YYYY-MM'),
+      _createdAt: dayjs().format(),
+    })),
     config: {
       start_balance: 0,
       checked_balance: null,
