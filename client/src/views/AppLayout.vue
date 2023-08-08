@@ -60,6 +60,7 @@ export default {
   },
   mounted() {
     this.getAllData()
+    this.onResize()
     window.addEventListener('resize', this.onResize)
   },
   beforeUnmount() {
