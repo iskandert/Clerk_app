@@ -4,17 +4,43 @@
       <div class="title">
         <h4>Планы по месяцам и категориям</h4>
         <div class="button-bar">
-          <el-switch v-model="isReversedLayout" active-text="По месяцам" inactive-text="По категориям"></el-switch>
+
+          <template v-if="!isMobileSize">
+            <el-button @click="isShowedBalance = !isShowedBalance" :type="isShowedBalance ? 'primary' : ''" round plain
+              :icon="iconLock">Баланс</el-button>
+            <el-button @click="isShowedSavings = !isShowedSavings" :type="isShowedSavings ? 'primary' : ''" round plain
+              :icon="iconCoin">Накопления</el-button>
+            <el-button @click="isShowedDinamic = !isShowedDinamic" :type="isShowedDinamic ? 'primary' : ''" round plain
+              :icon="iconDinamic">Изменения</el-button>
+            <el-button @click="isReversedLayout = !isReversedLayout" :type="isReversedLayout ? 'primary' : ''" round plain
+              :icon="iconFlip">Перевернуть</el-button>
+          </template>
+
+          <el-popover v-else :width="200" trigger="click">
+            <template #reference>
+              <el-button :icon="iconMore" type="info" plain circle></el-button>
+            </template>
+            <div class="checkbox-bar">
+              <h5>Настройки отображения</h5>
+              <el-checkbox v-model="isShowedBalance">Баланс</el-checkbox>
+              <el-checkbox v-model="isShowedSavings">Накопления</el-checkbox>
+              <el-checkbox v-model="isShowedDinamic">Изменения</el-checkbox>
+              <el-checkbox v-model="isReversedLayout">Перевернуть</el-checkbox>
+            </div>
+          </el-popover>
+          <!-- <el-switch v-model="isReversedLayout" active-text="По месяцам" inactive-text="По категориям"></el-switch> -->
         </div>
       </div>
       <div class="table">
-        <el-table :data="plansByCategories" row-key="_id" default-expand-all border max-height="500px"
+        <el-table :data="plansByCategories" row-key="_id" default-expand-all border max-height="var(--table-height)"
           @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout">
-          <el-table-column width="180" fixed class="category-column">
+          <el-table-column :width="isMobileSize ? 130 : 180" fixed class="category-column">
             <template #header>
-              <div class="table-title tips">
-                <div>Категории</div>
-                <div>Месяца</div>
+              <div class="desktop-only">
+                <div class="table-title tips">
+                  <div>Месяца</div>
+                  <div>Категории</div>
+                </div>
               </div>
             </template>
             <template #default="{ row: category }">
@@ -39,13 +65,16 @@
                 <span>{{ category.name }}</span>
               </span>
             </template>
-
           </el-table-column>
-          <el-table-column v-for="(date, index) in [...datesList, ...datesList]" :key="index" width="100">
+          <el-table-column v-for="(date, index) in datesList" :key="index" width="110">
             <template #header>
-              <div class="table-title">
-                <div>{{ $dayjs(date).format('MMMM') }}</div>
-                <div>{{ $dayjs(date).format('YYYY') }}</div>
+              <div class="table-title dates">
+                <div class="desktop-only">{{ $dayjs(date).format('MMMM YY') }}</div>
+                <div class="mobile-only">{{ $dayjs(date).format('MM.YYYY') }}</div>
+                <PlansBalance v-if="isShowedBalance" :sum="10000000" :dinamic="9000" type="default"
+                  :is-show-dinamic="isShowedDinamic" />
+                <PlansBalance v-if="isShowedSavings" :sum="90000000" :dinamic="300000" type="savings"
+                  :is-show-dinamic="isShowedDinamic" style="margin:4px 0 4px" />
               </div>
             </template>
             <template #default="{ row: category }">
@@ -54,25 +83,46 @@
                   <PlansItem :sum="category.plans[date]?.sum" :status="category.status" />
                 </div>
               </template>
-              <div class="plans-sum" v-else-if="plansByDatesObj[date]?.sums">
-                <PlansItem :sum="plansByDatesObj[date].sums[category.status]" type="all" :status="category.status" />
+              <div class="plans-sum" v-else>
+                <PlansItem :sum="plansByDatesObj[date]?.sums?.[category.status] || 0" type="all"
+                  :status="category.status" />
               </div>
             </template>
           </el-table-column>
+          <template #append>
+            <div class="add-category-row">
+              <el-icon :size="12">
+                <Plus />
+              </el-icon>
+              <div>Добавить категорию</div>
+            </div>
+          </template>
         </el-table>
 
-        <el-table v-else :data="[...datesList, ...datesList]" border max-height="500px" ref="plansTable2">
-          <el-table-column width="180" fixed class="dates-column">
+        <el-table v-else :data="datesList" border ref="plansTable2" max-height="var(--table-height)">
+          <el-table-column :width="isMobileSize ? 80 : 120" fixed class="dates-column">
             <template #header>
-              <div class="table-title tips">
-                <div>Месяца</div>
-                <div>Категории</div>
+              <div class="desktop-only">
+                <div class="table-title tips" :class="{ gaped: isReversedLayout }">
+                  <div>Категории</div>
+                  <div>Месяца</div>
+                </div>
               </div>
             </template>
             <template #default="{ row: date }">
               <div class="date">
-                {{ $dayjs(date).format('YYYY MMMM') }}
+                {{ $dayjs(date).format(isMobileSize ? 'MM.YYYY' : 'YYYY MMMM') }}
               </div>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isShowedBalance" width="110" fixed label="Остаток">
+            <template #default="{ row: date }">
+              <PlansBalance :sum="10000000" :dinamic="9000" type="default" :is-show-dinamic="isShowedDinamic" />
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isShowedSavings" width="110" fixed label="Накопления">
+            <template #default="{ row: date }">
+              <PlansBalance :sum="90000000" :dinamic="300000" type="savings" :is-show-dinamic="isShowedDinamic" />
             </template>
           </el-table-column>
           <el-table-column v-for="(categGroup, index) in plansByCategories" :key="index" :label="categGroup.name">
@@ -94,8 +144,9 @@
                     <PlansItem :sum="category.plans[date]?.sum" :status="category.status" />
                   </div>
                 </template>
-                <div class="plans-sum" v-else-if="plansByDatesObj[date]?.sums">
-                  <PlansItem :sum="plansByDatesObj[date].sums[category.status]" type="all" :status="category.status" />
+                <div class="plans-sum" v-else>
+                  <PlansItem :sum="plansByDatesObj[date]?.sums?.[category.status] || 0" type="all"
+                    :status="category.status" />
                 </div>
               </template>
             </el-table-column>
@@ -106,20 +157,38 @@
         <h1>plansByDates</h1>
         <pre>{{ plansByDates }}</pre> -->
       </div>
+      <div class="button-container">
+        <el-button round type="primary" :size="isMobileSize ? 'large' : ''">Добавить план</el-button>
+      </div>
     </el-card>
   </div>
 </template>
 <script>
+import { shallowRef } from 'vue'
 import ActionsBar from '../components/ActionsBar.vue'
+import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount } from '../services/utils'
-import { Lock, Unlock, Plus, Minus } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, Minus, Coin, Refresh, Sort, MoreFilled } from '@element-plus/icons-vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance },
+  setup() {
+    return {
+      iconLock: shallowRef(Lock),
+      iconCoin: shallowRef(Coin),
+      iconDinamic: shallowRef(Sort),
+      iconFlip: shallowRef(Refresh),
+      iconMore: shallowRef(MoreFilled),
+    }
+  },
   data() {
     return {
       isReversedLayout: false,
+      isShowedBalance: true,
+      isShowedSavings: true,
+      isShowedDinamic: true,
+      isShowedPercentage: true,
       //
       getFormattedCount
     }
@@ -172,10 +241,14 @@ export default {
     datesList() {
       const dates = []
       let date = this.plansDates.at(-1)
-      while (!this.$dayjs(date).isAfter(this.plansDates[0])) {
-        dates.push(date)
+      let maxDate = this.plansDates[0]
+      let dateAfterYear = this.$dayjs(date).add(12, 'month').format('YYYY-MM')
+      if (!this.$dayjs(maxDate).isAfter(dateAfterYear)) maxDate = dateAfterYear
+      dates.push(date)
+      do {
         date = this.$dayjs(date).add(1, 'month').format('YYYY-MM')
-      }
+        dates.push(date)
+      } while (!this.$dayjs(date).isAfter(maxDate))
       return dates
     },
     plansByCategories() {
@@ -215,7 +288,10 @@ export default {
     },
     plansByDatesObj() {
       return getObjectFromArray(this.plansByDates, 'date')
-    }
+    },
+    isMobileSize() {
+      return this.$store.getters['getWindowSizeState']
+    },
   },
   methods: {
     toggleExpand(row, col) {
@@ -238,9 +314,34 @@ export default {
   margin-bottom: 16px;
 }
 
+.title>h4 {
+  margin: 0;
+}
+
+.title>.button-bar {
+  align-self: flex-end;
+}
+
+.button-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.button-bar>button {
+  margin: 0;
+}
+
+.checkbox-bar {
+  display: flex;
+  flex-direction: column;
+}
+
 .el-table {
   border-radius: 8px;
   border: 1px solid var(--el-color-gray);
+  --table-height: calc(100dvh - var(--header-height) - var(--footer-height-mobile) - 188px);
+  --table-height: calc(100vh - var(--header-height) - var(--footer-height-mobile) - 188px);
 }
 
 :deep(.el-table__header-wrapper) {
@@ -269,8 +370,11 @@ export default {
 .table-title.tips {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: flex-start;
+}
+
+.table-title.tips.gaped {
+  gap: 28px;
 }
 
 .table-title.tips>div:first-of-type {
@@ -396,5 +500,48 @@ export default {
 .date {
   color: var(--el-text-color-secondary);
   font-weight: bold;
+}
+
+.add-category-row {
+  padding: 8px 8px 16px;
+  display: flex;
+  align-items: center;
+  color: var(--el-color-primary);
+  gap: 6px;
+  cursor: pointer;
+}
+
+.add-category-row:hover {
+  background-color: var(--el-color-primary-light-9);
+}
+
+.add-category-row:active {
+  background-color: var(--el-color-primary-light-8);
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+  .title {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .title>.button-bar {
+    align-self: flex-end;
+  }
+
+  .el-table {
+    --table-height: calc(100dvh - var(--header-height) - var(--footer-height) - 152px);
+    --table-height: calc(100vh - var(--header-height) - var(--footer-height) - 152px);
+  }
+
+  .button-container {
+    justify-content: right;
+  }
 }
 </style>

@@ -2,7 +2,8 @@ import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import api from '../services/api'
 import axios from 'axios'
-import { cloneByJSON, setValueAfterDelay } from '../services/utils'
+import { cloneByJSON, getInitWidth, setValueAfterDelay } from '../services/utils'
+import { layoutSizing } from '../config'
 
 const getDefaultState = () => {
   return {
@@ -14,7 +15,7 @@ const getDefaultState = () => {
     isMobileSize: false,
     meta: [],
     data: {},
-    // viewportSize: getInitWidth(layoutSizing), // xs, sm, md, lg, xl
+    viewportSize: getInitWidth(layoutSizing), // xs, sm, md, lg, xl
   }
 }
 

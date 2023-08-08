@@ -27,7 +27,8 @@
 <script>
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
-import { notifyWrap } from '../services/utils'
+import { getInitWidth, notifyWrap } from '../services/utils'
+import { layoutSizing } from '../config'
 
 export default {
   components: {
@@ -45,10 +46,25 @@ export default {
         notifyWrap(err)
       }
     },
+    onResize() {
+      const size = getInitWidth(layoutSizing)
+      this.$store.commit('SET_SUP_DATA', {
+        f: 'isMobileSize',
+        data: size === 'xs'
+      })
+      this.$store.commit('SET_SUP_DATA', {
+        f: 'viewportSize',
+        data: size
+      })
+    },
   },
   mounted() {
     this.getAllData()
+    window.addEventListener('resize', this.onResize)
   },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.onResize)
+  }
 }
 </script>
 <style>
@@ -120,6 +136,14 @@ footer>.section-container {
   min-height: calc(var(--footer-height-mobile) * 2);
 }
 
+:global(.desktop-only) {
+  display: none !important;
+}
+
+:global(.mobile-only) {
+  display: block !important;
+}
+
 @media (min-width: 768px) {
   :root {
     --footer-height: 64px;
@@ -144,6 +168,14 @@ footer>.section-container {
 
   .section-container {
     max-width: 1000px;
+  }
+
+  :global(.desktop-only) {
+    display: block !important;
+  }
+
+  :global(.mobile-only) {
+    display: none !important;
   }
 }
 

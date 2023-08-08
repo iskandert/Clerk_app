@@ -159,7 +159,7 @@ p {
   margin: 0;
 }
 
-:not(.el-button, .menu-item-text, .el-message-box__title)>span:not(.el-link__inner, .trigger),
+:not(.el-button, .menu-item-text, .el-message-box__title, .el-switch, .el-switch__label)>span:not(.el-link__inner, .trigger),
 p {
   font-size: 14px;
   color: var(--el-text-color-regular);

@@ -1,6 +1,11 @@
 import dayjs from 'dayjs'
 import { ElNotification } from 'element-plus'
 
+function getInitWidth(sizes) {
+  if (window.innerWidth < sizes[0][1]) return 'xs'
+  else return sizes.findLast((size) => window.innerWidth >= size[1])[0]
+}
+
 function setValueAfterDelay(func, [ov, nv], delay = 0, time = dayjs()) {
   func(ov)
   // console.log('utils:', delay, dayjs().diff(time, 's'))
@@ -97,6 +102,7 @@ function compareByOrder(list, v1, v2) {
 
 export {
   //
+  getInitWidth,
   setValueAfterDelay,
   notifyWrap,
   cloneByJSON,

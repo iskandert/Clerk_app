@@ -47,10 +47,11 @@
                 <div class="action" v-for="(action, i) in actions" :key="i">
                   <div class="icon"></div>
                   <p class="text">
-                  <p class="category desktop el-link el-link--default is-underline" @click="callEditAction(action)">
+                  <p class="category desktop-only el-link el-link--default is-underline" @click="callEditAction(action)">
                     {{ getEntityField(categoriesStored, action.category_id) }}
                   </p>
-                  <p class="category mobile el-link el-link--default is-underline" @click="callEditAction(action, true)">
+                  <p class="category mobile-only el-link el-link--default is-underline"
+                    @click="callEditAction(action, true)">
                     {{ getEntityField(categoriesStored, action.category_id) }}
                   </p>
                   <span class="comment">{{ action.comment || 'Без комментария' }}</span>
@@ -326,10 +327,6 @@ export default {
   width: max-content;
 }
 
-.action>.text>.category.desktop {
-  display: none;
-}
-
 .action>.text>.comment {
   font-size: 12px;
   color: var(--el-text-color-secondary);
@@ -426,14 +423,6 @@ export default {
 
   .adding-button {
     display: none;
-  }
-
-  .action>.text>.category.mobile {
-    display: none;
-  }
-
-  .action>.text>.category.desktop {
-    display: block;
   }
 }
 </style>
