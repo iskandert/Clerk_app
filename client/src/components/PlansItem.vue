@@ -46,6 +46,7 @@ export default {
 }
 
 .item.plan {
+  font-weight: bold;
   color: var(--el-color-white);
 }
 

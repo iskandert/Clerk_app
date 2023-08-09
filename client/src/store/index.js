@@ -13,6 +13,7 @@ const getDefaultState = () => {
     user: {},
     loadState: false,
     isMobileSize: false,
+    fullScreenMode: false,
     meta: [],
     data: {},
     viewportSize: getInitWidth(layoutSizing), // xs, sm, md, lg, xl
@@ -34,6 +35,9 @@ export default createStore({
     },
     getWindowSizeState: (state) => {
       return state.isMobileSize
+    },
+    getScreenMode: (state) => {
+      return state.fullScreenMode
     },
     getList: (state) => (col) => {
       let colParts = col.split('/').filter((str) => str)
@@ -76,6 +80,9 @@ export default createStore({
     },
     SET_LOAD_STATE: (state, value) => {
       state.loadState = value
+    },
+    SET_SCREEN_MODE: (state, value) => {
+      state.fullScreenMode = value
     },
     RESET: (state) => {
       clearTimeout(state.expiringTimeout)

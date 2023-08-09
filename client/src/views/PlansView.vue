@@ -7,13 +7,25 @@
 
           <template v-if="!isMobileSize">
             <el-button @click="isShowedBalance = !isShowedBalance" :type="isShowedBalance ? 'primary' : ''" round plain
-              :icon="iconLock">Баланс</el-button>
+              :icon="iconLock">
+              Баланс
+            </el-button>
             <el-button @click="isShowedSavings = !isShowedSavings" :type="isShowedSavings ? 'primary' : ''" round plain
-              :icon="iconCoin">Накопления</el-button>
+              :icon="iconCoin">
+              Накопления
+            </el-button>
             <el-button @click="isShowedDinamic = !isShowedDinamic" :type="isShowedDinamic ? 'primary' : ''" round plain
-              :icon="iconDinamic">Изменения</el-button>
+              :icon="iconDinamic">
+              Изменения
+            </el-button>
+            <el-button @click="isShowedPercentage = !isShowedPercentage" :type="isShowedPercentage ? 'primary' : ''" round
+              plain>
+              % Процентаж
+            </el-button>
             <el-button @click="isReversedLayout = !isReversedLayout" :type="isReversedLayout ? 'primary' : ''" round plain
-              :icon="iconFlip">Перевернуть</el-button>
+              :icon="iconFlip">
+              Перевернуть
+            </el-button>
           </template>
 
           <el-popover v-else :width="200" trigger="click">
@@ -25,6 +37,7 @@
               <el-checkbox v-model="isShowedBalance">Баланс</el-checkbox>
               <el-checkbox v-model="isShowedSavings">Накопления</el-checkbox>
               <el-checkbox v-model="isShowedDinamic">Изменения</el-checkbox>
+              <el-checkbox v-model="isShowedPercentage">Процентаж</el-checkbox>
               <el-checkbox v-model="isReversedLayout">Перевернуть</el-checkbox>
             </div>
           </el-popover>
@@ -38,8 +51,7 @@
             <template #header>
               <div class="desktop-only">
                 <div class="table-title tips">
-                  <div>Месяца</div>
-                  <div>Категории</div>
+                  <span class="span-wrap-keepall">{{ monthProgress }}% месяца</span>
                 </div>
               </div>
             </template>
@@ -66,11 +78,19 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column v-for="(date, index) in datesList" :key="index" width="110">
+          <el-table-column v-if="isShowedPercentage" :width="isMobileSize ? '90' : '130'" fixed>
+            <template #header>
+              <span class="span-wrap-keepall">Выполнение планов</span>
+            </template>
+            <template #default="{ row: category }">
+              <PlansPercent :current-sum="60000" :plan-sum="14000" :status="category.status" />
+            </template>
+          </el-table-column>
+          <el-table-column v-for="(date, index) in datesList" :key="index" width="120">
             <template #header>
               <div class="table-title dates">
-                <div class="desktop-only">{{ $dayjs(date).format('MMMM YY') }}</div>
-                <div class="mobile-only">{{ $dayjs(date).format('MM.YYYY') }}</div>
+                <span class="desktop-only">{{ $dayjs(date).format('MMMM YY') }}</span>
+                <span class="mobile-only">{{ $dayjs(date).format('MM.YYYY') }}</span>
                 <PlansBalance v-if="isShowedBalance" :sum="10000000" :dinamic="9000" type="default"
                   :is-show-dinamic="isShowedDinamic" />
                 <PlansBalance v-if="isShowedSavings" :sum="90000000" :dinamic="300000" type="savings"
@@ -104,23 +124,30 @@
             <template #header>
               <div class="desktop-only">
                 <div class="table-title tips" :class="{ gaped: isReversedLayout }">
-                  <div>Категории</div>
-                  <div>Месяца</div>
+                  <!-- <div>Категории</div>
+                    <div>Месяца</div> -->
+                  <span class="span-wrap-keepall">{{ monthProgress }}% месяца</span>
                 </div>
               </div>
             </template>
             <template #default="{ row: date }">
-              <div class="date">
+              <span class="date">
                 {{ $dayjs(date).format(isMobileSize ? 'MM.YYYY' : 'YYYY MMMM') }}
-              </div>
+              </span>
             </template>
           </el-table-column>
-          <el-table-column v-if="isShowedBalance" width="110" fixed label="Остаток">
+          <el-table-column v-if="isShowedBalance" width="110" fixed>
+            <template #header>
+              <span>Баланс</span>
+            </template>
             <template #default="{ row: date }">
               <PlansBalance :sum="10000000" :dinamic="9000" type="default" :is-show-dinamic="isShowedDinamic" />
             </template>
           </el-table-column>
-          <el-table-column v-if="isShowedSavings" width="110" fixed label="Накопления">
+          <el-table-column v-if="isShowedSavings" width="110" fixed>
+            <template #header>
+              <span>Накопления</span>
+            </template>
             <template #default="{ row: date }">
               <PlansBalance :sum="90000000" :dinamic="300000" type="savings" :is-show-dinamic="isShowedDinamic" />
             </template>
@@ -131,10 +158,12 @@
                 <div>{{ categGroup.name }}</div>
               </div>
             </template>
-            <el-table-column width="110" v-for="(category, index) in [categGroup, ...categGroup.children]" :key="index"
+            <el-table-column width="120" v-for="(category, index) in [categGroup, ...categGroup.children]" :key="index"
               :label="category.name">
               <template #header>
                 <div class="table-title table-header" :class="[category.status, category.type]">
+                  <PlansPercent v-if="isShowedPercentage" :current-sum="60000" :plan-sum="14000" :status="category.status"
+                    style="margin-bottom:4px" />
                   <div>{{ category.type ? category.name : 'Всего' }}</div>
                 </div>
               </template>
@@ -170,9 +199,10 @@ import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount } from '../services/utils'
 import { Lock, Unlock, Plus, Minus, Coin, Refresh, Sort, MoreFilled } from '@element-plus/icons-vue'
+import PlansPercent from '../components/PlansPercent.vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -292,11 +322,17 @@ export default {
     isMobileSize() {
       return this.$store.getters['getWindowSizeState']
     },
+    monthProgress() {
+      return Math.round(this.$dayjs().date() / this.$dayjs().daysInMonth() * 100)
+    }
   },
   methods: {
     toggleExpand(row, col) {
       if (col?.no !== 0) return
       this.$refs.plansTable.toggleRowExpansion(row)
+    },
+    isCurrentMonth(date) {
+      return this.$dayjs(date).isSame(this.$dayjs(), 'month')
     },
   },
 }
@@ -354,6 +390,10 @@ export default {
   z-index: 5;
 }
 
+:deep(.el-table__header th.el-table__cell) {
+  vertical-align: top;
+}
+
 :deep(.el-table__inner-wrapper) {
   border: none;
 }
@@ -365,20 +405,6 @@ export default {
 :deep(.cell) {
   padding: 0 8px;
   height: 100%;
-}
-
-.table-title.tips {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.table-title.tips.gaped {
-  gap: 28px;
-}
-
-.table-title.tips>div:first-of-type {
-  align-self: flex-end;
 }
 
 .category-column :deep(.cell) {

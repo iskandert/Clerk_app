@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
     <header>
-      <div class="section-container">
+      <div class="section-container" :class="{ full: false }">
         <AppHeader />
       </div>
     </header>
     <main>
-      <div class="section-container">
+      <div class="section-container" :class="{ full: isFullMode }">
         <router-view v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <div :key="route.name">
@@ -17,7 +17,7 @@
       </div>
     </main>
     <footer>
-      <div class="section-container">
+      <div class="section-container" :class="{ full: false }">
         <AppFooter />
       </div>
     </footer>
@@ -57,6 +57,11 @@ export default {
         data: size
       })
     },
+  },
+  computed: {
+    isFullMode() {
+      return this.$store.getters.getScreenMode
+    }
   },
   mounted() {
     this.getAllData()
@@ -169,6 +174,10 @@ footer>.section-container {
 
   .section-container {
     max-width: 1000px;
+  }
+
+  .section-container.full {
+    max-width: none;
   }
 
   :global(.desktop-only) {

@@ -23,6 +23,9 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :icon="iconUser" disabled>Профиль</el-dropdown-item>
+              <el-dropdown-item :icon="iconFull" @click="handleScreenModeClick(true)"
+                v-if="!isFullMode">Развернуть</el-dropdown-item>
+              <el-dropdown-item :icon="iconNorm" @click="handleScreenModeClick(false)" v-else>Свернуть</el-dropdown-item>
               <el-dropdown-item :icon="iconExit" @click="handleSignoutClick">Выйти</el-dropdown-item>
               <el-dropdown-item :icon="iconDelete" @click="handleDeleteClick" class="delete_opt">
                 Удалить данные
@@ -39,7 +42,7 @@ import AuthBar from './AuthBar.vue'
 import LogoIcon from '../components/icons/LogoIcon.vue'
 import LogoText from '../components/icons/LogoText.vue'
 import { shallowRef } from 'vue'
-import { Tools, Close, User, Delete } from '@element-plus/icons-vue'
+import { Tools, Close, User, Delete, FullScreen, Aim } from '@element-plus/icons-vue'
 import { notifyWrap } from '../services/utils'
 
 export default {
@@ -50,11 +53,16 @@ export default {
       iconUser: shallowRef(User),
       iconExit: shallowRef(Close),
       iconDelete: shallowRef(Delete),
+      iconFull: shallowRef(FullScreen),
+      iconNorm: shallowRef(Aim),
     }
   },
   computed: {
     pagePath() {
       return this.$route.name
+    },
+    isFullMode() {
+      return this.$store.getters.getScreenMode
     }
   },
   methods: {
@@ -111,6 +119,9 @@ export default {
         if (!this.$store.getters.isLoggedIn) return
         notifyWrap(e)
       }
+    },
+    handleScreenModeClick(value) {
+      this.$store.commit('SET_SCREEN_MODE', value)
     }
   },
 }

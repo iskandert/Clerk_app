@@ -183,4 +183,9 @@ div.el-form-item {
 div.el-dialog__body {
   padding-top: 0;
 }
+
+.span-wrap-keepall {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
 </style>

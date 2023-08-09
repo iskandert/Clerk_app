@@ -77,6 +77,7 @@ export default {
   line-height: 1.1;
   border-radius: 8px;
   border: 2px solid;
+  background-color: var(--el-color-white);
 }
 
 .balance-container.default {
