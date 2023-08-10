@@ -1,8 +1,8 @@
 <template>
   <div class="item-container">
     <template v-if="type === 'one'">
-      <div class="item plan" :class="status" v-if="sum">{{ formattedSum }}</div>
-      <div class="item empty" v-else>+</div>
+      <div tabindex="0" class="item plan" :class="status" v-if="sum">{{ formattedSum }}</div>
+      <div tabindex="0" class="item empty" v-else>+</div>
     </template>
     <div v-else class="item all" :class="status">{{ formattedSum }}</div>
   </div>
