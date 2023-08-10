@@ -45,8 +45,9 @@
         </div>
       </div>
       <div class="table">
-        <el-table :data="plansByCategories" row-key="_id" default-expand-all border max-height="var(--table-height)"
-          @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout">
+
+        <el-table class="table-normal" :data="plansByCategories" row-key="_id" default-expand-all border
+          max-height="var(--table-height)" @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout">
           <el-table-column :width="isMobileSize ? 130 : 180" fixed class="category-column">
             <template #header>
               <div class="desktop-only">
@@ -119,7 +120,8 @@
           </template>
         </el-table>
 
-        <el-table v-else :data="datesList" border ref="plansTable2" max-height="var(--table-height)">
+        <el-table class="table-reversed" v-else :data="datesList" border ref="plansTable2"
+          max-height="var(--table-height)">
           <el-table-column :width="isMobileSize ? 80 : 120" fixed class="dates-column">
             <template #header>
               <div class="desktop-only">
@@ -154,14 +156,14 @@
           </el-table-column>
           <el-table-column v-for="(categGroup, index) in plansByCategories" :key="index" :label="categGroup.name">
             <template #header>
-              <div class="table-title table-header" :class="[categGroup.status, categGroup.type]">
+              <div class="table-title category-header" :class="[categGroup.status, categGroup.type]">
                 <div>{{ categGroup.name }}</div>
               </div>
             </template>
             <el-table-column width="120" v-for="(category, index) in [categGroup, ...categGroup.children]" :key="index"
               :label="category.name">
               <template #header>
-                <div class="table-title table-header" :class="[category.status, category.type]">
+                <div class="table-title category-header" :class="[category.status, category.type]">
                   <PlansPercent v-if="isShowedPercentage" :current-sum="60000" :plan-sum="14000" :status="category.status"
                     style="margin-bottom:4px" />
                   <div>{{ category.type ? category.name : 'Всего' }}</div>
@@ -375,7 +377,7 @@ export default {
 
 .el-table {
   border-radius: 8px;
-  border: 1px solid var(--el-color-gray);
+  border: 1px solid var(--el-color-gray-light-3);
   --table-height: calc(100dvh - var(--header-height) - var(--footer-height-mobile) - 188px);
   --table-height: calc(100vh - var(--header-height) - var(--footer-height-mobile) - 188px);
 }
@@ -392,6 +394,12 @@ export default {
 
 :deep(.el-table__header th.el-table__cell) {
   vertical-align: top;
+}
+
+.table-normal :deep(.el-table__header th.el-table__cell),
+.table-reversed :deep(.el-table__header th.el-table__cell:not(:has(.category-header))),
+.table-reversed :deep(td.el-table__cell:has(.date)) {
+  background-color: var(--el-color-gray);
 }
 
 :deep(.el-table__inner-wrapper) {
@@ -433,20 +441,22 @@ export default {
 }
 
 :deep(.el-table__cell):has(.category-name.income) {
-  background-color: var(--el-color-success-light-9);
+  background-color: var(--el-color-success-light-8);
+  font-weight: bold;
 }
 
 :deep(.el-table__cell):has(.category-name.expense) {
-  background-color: var(--el-color-info-light-9);
+  background-color: var(--el-color-info-light-8);
+  font-weight: bold;
 }
 
 :deep(.el-table__cell):has(.category-name.parent-category.income) {
-  background-color: var(--el-color-success-light-8);
+  background-color: var(--el-color-success-light-7);
   cursor: pointer;
 }
 
 :deep(.el-table__cell):has(.category-name.parent-category.expense) {
-  background-color: var(--el-color-info-light-8);
+  background-color: var(--el-color-info-light-7);
   cursor: pointer;
 }
 
@@ -470,12 +480,12 @@ export default {
 
 .symbol.unlock,
 .symbol.unlock+span {
-  color: var(--el-color-danger);
+  color: var(--el-color-danger-dark-2);
 }
 
 .symbol.lock,
 .symbol.lock+span {
-  color: var(--el-color-primary);
+  color: var(--el-color-primary-dark-1);
 }
 
 .symbol.minus,
@@ -488,39 +498,39 @@ export default {
 }
 
 .table .el-table {
-  --el-table-border: 1px solid var(--el-border-color-darker);
+  --el-table-border: 1px solid var(--el-color-gray-light-3);
 }
 
 .table .el-table :deep(.is-group .el-table__cell) {
   background-color: var(--el-color-white);
 }
 
-.table .el-table :deep(.el-table__cell):has(.table-header.income) {
-  background-color: var(--el-color-success-light-9);
+.table .el-table :deep(.el-table__cell):has(.category-header.income) {
+  background-color: var(--el-color-success-light-8);
 }
 
-.table .el-table :deep(.el-table__cell):has(.table-header.expense) {
-  background-color: var(--el-color-info-light-9);
+.table .el-table :deep(.el-table__cell):has(.category-header.expense) {
+  background-color: var(--el-color-info-light-8);
 }
 
-.table-header {
+.category-header {
   word-break: keep-all;
 }
 
-.table-header.income {
-  color: var(--el-color-success);
+.category-header.income {
+  color: var(--el-color-success-dark-2);
 }
 
-.table-header.income.savings {
-  color: var(--el-color-danger);
+.category-header.income.savings {
+  color: var(--el-color-danger-dark-2);
 }
 
-.table-header.expense {
-  color: var(--el-color-info);
+.category-header.expense {
+  color: var(--el-color-info-dark-2);
 }
 
-.table-header.expense.savings {
-  color: var(--el-color-primary);
+.category-header.expense.savings {
+  color: var(--el-color-primary-dark-1);
 }
 
 .date {

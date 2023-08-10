@@ -51,26 +51,27 @@ export default {
 }
 
 .item.plan.expense {
-  background-color: var(--el-color-info-light-5);
+  background-color: var(--el-color-info-light-3);
 }
 
 .item.plan.income {
-  background-color: var(--el-color-success-light-5);
+  background-color: var(--el-color-success-light-3);
 }
 
 .item.empty {
+  font-weight: bold;
   background-color: var(--el-color-white);
   color: var(--el-color-primary);
-  border: 1px dashed;
+  border: 2px dotted;
   border-color: var(--el-color-primary);
 }
 
 .item.plan.expense:hover {
-  background-color: var(--el-color-info-light-3);
+  background-color: var(--el-color-info);
 }
 
 .item.plan.income:hover {
-  background-color: var(--el-color-success-light-3);
+  background-color: var(--el-color-success);
 }
 
 .item.empty:hover {
@@ -78,11 +79,11 @@ export default {
 }
 
 .item.plan.expense:active {
-  background-color: var(--el-color-info);
+  background-color: var(--el-color-info-dark-2);
 }
 
 .item.plan.income:active {
-  background-color: var(--el-color-success);
+  background-color: var(--el-color-success-dark-2);
 }
 
 .item.empty:active {
