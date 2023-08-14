@@ -47,7 +47,8 @@
       <div class="table">
 
         <el-table class="table-normal" :data="plansByCategories" row-key="_id" default-expand-all border
-          max-height="var(--table-height)" @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout">
+          max-height="var(--table-height)" @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout"
+          @keydown.up.prevent @keydown.down.prevent @keydown.left.prevent @keydown.right.prevent>
           <el-table-column :width="isMobileSize ? 130 : 180" fixed class="category-column">
             <template #header>
               <div class="desktop-only">
@@ -101,7 +102,8 @@
             <template #default="{ row: category }">
               <template v-if="category.plans">
                 <div class="plan-item">
-                  <PlansItem :sum="category.plans[date]?.sum" :status="category.status" />
+                  <PlansItem @click="callEditPlan(category.plans[date] || { date, category_id: category._id })"
+                    :sum="category.plans[date]?.sum" :status="category.status" />
                 </div>
               </template>
               <div class="plans-sum" v-else>
@@ -172,7 +174,8 @@
               <template #default="{ row: date }">
                 <template v-if="category.type">
                   <div class="plan-item">
-                    <PlansItem :sum="category.plans[date]?.sum" :status="category.status" />
+                    <PlansItem @click="callEditPlan(category.plans[date] || { date, category_id: category._id })"
+                      :sum="category.plans[date]?.sum" :status="category.status" />
                   </div>
                 </template>
                 <div class="plans-sum" v-else>
@@ -183,15 +186,18 @@
             </el-table-column>
           </el-table-column>
         </el-table>
-        <!-- <h1>plansByCategories</h1>
-        <pre>{{ plansByCategories }}</pre>
-        <h1>plansByDates</h1>
-        <pre>{{ plansByDates }}</pre> -->
       </div>
       <div class="button-container">
         <el-button round type="primary" :size="isMobileSize ? 'large' : ''">Добавить план</el-button>
       </div>
     </el-card>
+
+    <el-dialog width="min(100vw, 500px)" v-model="planDialog" :append-to-body="true" :before-close="handleCancelPlan">
+      <template #header>
+        <h4>{{ isEditMode ? 'Редактировать' : 'Добавить' }} план</h4>
+      </template>
+      <PlansForm @call-to-end="handleCancelPlan" class="dialog" />
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -199,12 +205,13 @@ import { shallowRef } from 'vue'
 import ActionsBar from '../components/ActionsBar.vue'
 import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
+import PlansForm from '../components/PlansForm.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount } from '../services/utils'
 import { Lock, Unlock, Plus, Minus, Coin, Refresh, Sort, MoreFilled } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -216,11 +223,15 @@ export default {
   },
   data() {
     return {
+      // table settings
       isReversedLayout: false,
       isShowedBalance: true,
       isShowedSavings: true,
       isShowedDinamic: true,
       isShowedPercentage: true,
+      //
+      planDialog: false,
+      isEditMode: false,
       //
       getFormattedCount
     }
@@ -264,7 +275,7 @@ export default {
       })
     },
     plansStored() {
-      return this.$store.getters.getData('plans')?.filter(({ sum }) => sum > 500) || []
+      return this.$store.getters.getData('plans') || []
     },
     plansDates() {
       const dates = new Set(this.plansStored.map(({ date }) => this.$dayjs(date).format('YYYY-MM')))
@@ -335,6 +346,30 @@ export default {
     },
     isCurrentMonth(date) {
       return this.$dayjs(date).isSame(this.$dayjs(), 'month')
+    },
+    openPlanDialog() {
+      this.planDialog = true
+    },
+    handleCancelPlan() {
+      this.planDialog = false
+      this.$router.push({
+        path: '/plans',
+        replace: true
+      })
+    },
+    callEditPlan(plan) {
+      if (plan?._id) this.isEditMode = true
+      if (plan) {
+        this.$router.push({
+          path: '/plans',
+          query: {
+            ...plan,
+            isEdit: !!plan?._id,
+          },
+          replace: true
+        })
+      }
+      this.openPlanDialog()
     },
   },
 }

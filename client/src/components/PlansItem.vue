@@ -1,20 +1,21 @@
 <template>
   <div class="item-container">
     <template v-if="type === 'one'">
-      <div tabindex="0" class="item plan" :class="status" v-if="sum">{{ formattedSum }}</div>
-      <div tabindex="0" class="item empty" v-else>+</div>
+      <div @click="openPlanDialog" tabindex="0" class="item plan" :class="status" v-if="isDefinedSum">{{ formattedSum
+      }}</div>
+      <div @click="openPlanDialog" tabindex="0" class="item empty" v-else>+</div>
     </template>
     <div v-else class="item all" :class="status">{{ formattedSum }}</div>
   </div>
 </template>
 <script>
-import { getFormattedCount } from '../services/utils';
+import { getFormattedCount } from '../services/utils'
 
 export default {
   props: {
     sum: {
       type: Number,
-      default: 0
+      default: undefined
     },
     status: String,
     type: { // all | one
@@ -28,8 +29,11 @@ export default {
     }
   },
   computed: {
+    isDefinedSum() {
+      return this.sum !== undefined
+    },
     formattedSum() {
-      return getFormattedCount(this.sum, { accuracy: 0 })
+      return getFormattedCount(+this.sum, { accuracy: 0 })
     }
   },
 }

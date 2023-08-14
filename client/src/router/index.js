@@ -79,7 +79,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  console.log(to)
+  // console.log(to)
   let authorized = false
   if (store.getters.isLoggedIn || (JSON.parse(window.localStorage.getItem('vuex')) && JSON.parse(window.localStorage.getItem('vuex')).token)) {
     authorized = true

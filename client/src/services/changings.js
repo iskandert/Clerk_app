@@ -1,8 +1,14 @@
-import dayjs from 'dayjs'
 import schemas from './schemas'
 import { cloneByJSON, isEqual } from './utils'
 import { v4 as uuidv4 } from 'uuid'
 import store from '../store'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import weekday from 'dayjs/plugin/weekday'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/ru'
+dayjs.locale('ru')
+dayjs.extend(customParseFormat).extend(weekday).extend(relativeTime)
 
 export class Entities {
   constructor(state) {
@@ -239,6 +245,32 @@ export class Plans extends Entities {
     this.field = 'plans'
     this.schema = schemas.plan
   }
+  _deleteSameDate(obj) {
+    this.state[this.field].data.find(({ date, _id, category_id }) => {
+      if (date !== dayjs(obj.date).format('YYYY-MM') || category_id !== obj.category_id) return false
+      this.delete(_id)
+      return true
+    })
+  }
+  _addMorePlans(obj) {
+    let planSettings = cloneByJSON(obj)
+    let dateLast = dayjs(planSettings.dateLast)
+    delete planSettings.dateLast
+
+    if (!dayjs(planSettings.date).isBefore(dateLast, 'month')) return
+    let dateCurr = dayjs(planSettings.date).add(1, 'month')
+    while (!dateCurr.isAfter(dateLast)) {
+      let settings = {
+        ...planSettings,
+        date: dateCurr.format('YYYY-MM'),
+      }
+      const plan = this._create(settings)
+      this._deleteSameDate(settings)
+      this._add(plan)
+
+      dateCurr = dateCurr.add(1, 'month')
+    }
+  }
   add(obj, { new_category_settings = {}, current_table_id } = {}) {
     const planSettings = cloneByJSON(obj)
     let result = []
@@ -251,8 +283,17 @@ export class Plans extends Entities {
       result = result.concat(categories.getResult())
     }
 
+    planSettings.sum = +planSettings.sum
+    if (!planSettings.sum || planSettings.sum < 0) throw new Error('Сумма должна быть больше нуля')
+
+    if (planSettings.dateLast) {
+      this._addMorePlans(planSettings)
+      delete planSettings.dateLast
+    }
+
     const plan = this._create(planSettings)
     plan.date = dayjs(plan.date).format('YYYY-MM')
+    this._deleteSameDate(plan.date)
     this._add(plan)
     result = result.concat(this.getResult())
 
@@ -264,16 +305,32 @@ export class Plans extends Entities {
 
     return result
   }
+  change(obj) {
+    let result = []
+    let planSettings = cloneByJSON(obj)
+
+    if (planSettings.sum !== undefined) planSettings.sum = +planSettings.sum
+    if (!planSettings.sum || planSettings.sum < 0) throw new Error('Сумма должна быть больше нуля')
+    if (planSettings.date !== undefined) planSettings.date = dayjs(planSettings.date).format('YYYY-MM')
+
+    if (planSettings.dateLast) {
+      this._addMorePlans(planSettings)
+      delete planSettings.dateLast
+    }
+    super.change(planSettings)
+    result = result.concat(this.getResult())
+
+    return result
+  }
   delete(id) {
     let result = []
 
-    const tables = new Tables(this.state)
+    const tables = this.state.tables.data
     tables.forEach((table) => {
       const plan_id_index = table.plans_id.indexOf(id)
       if (plan_id_index < 0) return
       table.plans_id.splice(plan_id_index, 1)
     })
-    result = result.concat(tables.getResult())
 
     super.delete(id)
     result = result.concat(this.getResult())
