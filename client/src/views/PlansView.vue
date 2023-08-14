@@ -102,8 +102,8 @@
             <template #default="{ row: category }">
               <template v-if="category.plans">
                 <div class="plan-item">
-                  <PlansItem @click="callEditPlan(category.plans[date] || { date, category_id: category._id })"
-                    :sum="category.plans[date]?.sum" :status="category.status" />
+                  <PlansItem @call-to-edit="callEditPlan(category.plans[date] || { date, category_id: category._id })"
+                    :sum="category.plans[date]?.sum" :status="category.status" :date="date" />
                 </div>
               </template>
               <div class="plans-sum" v-else>
@@ -174,8 +174,8 @@
               <template #default="{ row: date }">
                 <template v-if="category.type">
                   <div class="plan-item">
-                    <PlansItem @click="callEditPlan(category.plans[date] || { date, category_id: category._id })"
-                      :sum="category.plans[date]?.sum" :status="category.status" />
+                    <PlansItem @call-to-edit="callEditPlan(category.plans[date] || { date, category_id: category._id })"
+                      :sum="category.plans[date]?.sum" :status="category.status" :date="date" />
                   </div>
                 </template>
                 <div class="plans-sum" v-else>
@@ -352,6 +352,7 @@ export default {
     },
     handleCancelPlan() {
       this.planDialog = false
+      this.isEditMode = false
       this.$router.push({
         path: '/plans',
         replace: true

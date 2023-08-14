@@ -46,11 +46,11 @@ const defaultActions = Array(5)
     category_id: `${(idx % 28) * 2}`,
   }))
 
-const defaultPlans = Array(28 * 3)
+const defaultPlans = Array(28)
   .fill()
   .map((_, idx) => ({
     sum: Math.round(Math.random() * 100000) / 100,
-    category_id: `${idx % 28}`,
+    category_id: `${idx}`,
   }))
 
 const initEntities = () => {
@@ -92,11 +92,12 @@ const initEntities = () => {
       _createdAt: dayjs().format(),
     })),
     // plans: [],
-    plans: defaultPlans.map((plan, idx) => ({
+    plans: [...defaultPlans, ...defaultPlans, ...defaultPlans].map((plan, idx) => ({
       ...plan,
       _id: uuidv4(),
       comment: 'Комментарий',
       date: dayjs()
+        .subtract(1, 'month')
         .add(Math.floor(idx / 28), 'month')
         .format('YYYY-MM'),
       _createdAt: dayjs().format(),
