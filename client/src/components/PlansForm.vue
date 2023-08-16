@@ -22,7 +22,8 @@
         </el-select>
       </el-form-item>
       <el-form-item label="Начальный месяц" prop="date">
-        <el-date-picker v-model="newPlan.date" type="month" placeholder="Выберите дату" format="MMMM YYYY" />
+        <el-date-picker v-model="newPlan.date" :disabled-date="(time) => $dayjs(time).isBefore($dayjs(), 'month')"
+          type="month" placeholder="Выберите дату" format="MMMM YYYY" />
       </el-form-item>
       <el-form-item label="Конечный месяц" prop="dateLast">
         <el-date-picker v-model="newPlan.dateLast"

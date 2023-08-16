@@ -1,5 +1,5 @@
 import schemas from './schemas'
-import { cloneByJSON, isEqual } from './utils'
+import { cloneByJSON, getObjectFromArray, isEqual } from './utils'
 import { v4 as uuidv4 } from 'uuid'
 import store from '../store'
 import dayjs from 'dayjs'
@@ -186,8 +186,16 @@ export class Actions extends Entities {
     this.field = 'actions'
     this.schema = schemas.action
   }
+  _format_settings(obj) {
+    const settings = cloneByJSON(obj)
+
+    if (settings?.date) settings.date = dayjs(settings.date).format()
+    if (settings?.sum !== undefined) settings.sum = Math.round(+settings.sum * 100) / 100
+
+    return settings
+  }
   add(obj, { new_category_settings = {} } = {}) {
-    const actionSettings = cloneByJSON(obj)
+    const actionSettings = this._format_settings(obj)
     let result = []
 
     if (actionSettings.category_id === 'new') {
@@ -199,10 +207,8 @@ export class Actions extends Entities {
     }
 
     const action = this._create(actionSettings)
-    action.date = dayjs(action.date).format()
-    action.sum = +action.sum
     this._add(action)
-    result = result.concat(this.getResult())
+    result = result.concat(this.getResult(), this.updatePastPlan(action, {}))
 
     const config = new Config(this.state)
     config.checkStart(action)
@@ -212,12 +218,12 @@ export class Actions extends Entities {
   }
   change(obj) {
     let result = []
+    const actionSettings = this._format_settings(obj)
 
-    if (obj.sum !== undefined) obj.sum = +obj.sum
-    if (obj.date !== undefined) obj.date = dayjs(obj.date).format()
-
-    super.change(obj)
-    result = result.concat(this.getResult())
+    const { entity: newAction } = this._find(actionSettings._id)
+    const oldAction = cloneByJSON(newAction)
+    this._change(newAction, actionSettings)
+    result = result.concat(this.getResult(), this.updatePastPlan(newAction, oldAction))
 
     const config = new Config(this.state)
     config.checkStart()
@@ -228,12 +234,60 @@ export class Actions extends Entities {
   delete(id) {
     let result = []
 
+    const { entity: oldAction } = cloneByJSON(this._find(id))
     super.delete(id)
-    result = result.concat(this.getResult())
+    result = result.concat(this.getResult(), this.updatePastPlan({}, oldAction))
 
     const config = new Config(this.state)
     config.checkStart()
     result = result.concat(config.getResult())
+
+    return result
+  }
+  updatePastPlan(newAction, oldAction) {
+    let result = []
+
+    let oldActionDate
+    let newActionDate
+    let now = dayjs()
+    if (oldAction?._id) oldActionDate = dayjs(oldAction.date).format('YYYY-MM')
+    if (newAction?._id) newActionDate = dayjs(newAction.date).format('YYYY-MM')
+    if (!oldActionDate && !newActionDate) return result
+
+    const plans = new Plans(this.state)
+    const oldActionPlan = this.state.plans.data.find(({ date, category_id }) => {
+      return date === oldActionDate && category_id === oldAction?.category_id
+    })
+    const newActionPlan = this.state.plans.data.find(({ date, category_id }) => {
+      return date === newActionDate && category_id === newAction?.category_id
+    })
+
+    if (oldActionDate && now.isAfter(oldActionDate, 'month') && oldActionPlan) {
+      oldActionPlan.sum -= +oldAction.sum
+      if (Math.round(oldActionPlan.sum) <= 0) {
+        plans.delete(oldActionPlan._id)
+      } else plans.change(oldActionPlan)
+
+      result = result.concat(plans.getResult())
+    }
+    if (newActionDate && now.isAfter(newActionDate, 'month')) {
+      if (newActionPlan) {
+        newActionPlan.sum += +newAction.sum
+        plans.change(newActionPlan)
+
+        result = result.concat(plans.getResult())
+      }
+      if (!newActionPlan) {
+        let plan = plans._create({
+          date: newActionDate,
+          sum: newAction.sum,
+          category_id: newAction.category_id,
+        })
+        plans._add(plan)
+
+        result = result.concat(plans.getResult())
+      }
+    }
 
     return result
   }
@@ -246,34 +300,49 @@ export class Plans extends Entities {
     this.schema = schemas.plan
   }
   _deleteSameDate(obj) {
-    this.state[this.field].data.find(({ date, _id, category_id }) => {
-      if (date !== dayjs(obj.date).format('YYYY-MM') || category_id !== obj.category_id) return false
+    const planSettings = this._format_settings(obj)
+
+    this.state[this.field].data.filter(({ date, _id, category_id }) => {
+      if (date !== planSettings.date || category_id !== planSettings.category_id) return false
       this.delete(_id)
       return true
     })
   }
   _addMorePlans(obj) {
-    let planSettings = cloneByJSON(obj)
+    const planSettings = this._format_settings(obj)
     let dateLast = dayjs(planSettings.dateLast)
     delete planSettings.dateLast
 
     if (!dayjs(planSettings.date).isBefore(dateLast, 'month')) return
+
     let dateCurr = dayjs(planSettings.date).add(1, 'month')
-    while (!dateCurr.isAfter(dateLast)) {
-      let settings = {
-        ...planSettings,
-        date: dateCurr.format('YYYY-MM'),
+    while (!dateCurr.isAfter(dateLast, 'month')) {
+      if (!dateCurr.isBefore(dayjs(), 'month')) {
+        let settings = {
+          ...planSettings,
+          date: dateCurr.format('YYYY-MM'),
+        }
+        const plan = this._create(settings)
+        this._deleteSameDate(settings)
+        this._add(plan)
       }
-      const plan = this._create(settings)
-      this._deleteSameDate(settings)
-      this._add(plan)
 
       dateCurr = dateCurr.add(1, 'month')
     }
   }
+  _format_settings(obj) {
+    const settings = cloneByJSON(obj)
+
+    if (settings?.date) settings.date = dayjs(settings.date).format('YYYY-MM')
+    if (settings?.sum !== undefined) settings.sum = Math.round(+settings.sum)
+
+    return settings
+  }
   add(obj, { new_category_settings = {}, current_table_id } = {}) {
-    const planSettings = cloneByJSON(obj)
+    const planSettings = this._format_settings(obj)
     let result = []
+
+    if (!planSettings.sum || planSettings.sum < 0) return result
 
     if (planSettings.category_id === 'new') {
       const categories = new Categories(this.state)
@@ -283,35 +352,32 @@ export class Plans extends Entities {
       result = result.concat(categories.getResult())
     }
 
-    planSettings.sum = +planSettings.sum
-    if (!planSettings.sum || planSettings.sum < 0) throw new Error('Сумма должна быть больше нуля')
-
     if (planSettings.dateLast) {
       this._addMorePlans(planSettings)
       delete planSettings.dateLast
     }
 
-    const plan = this._create(planSettings)
-    plan.date = dayjs(plan.date).format('YYYY-MM')
-    this._deleteSameDate(plan.date)
-    this._add(plan)
-    result = result.concat(this.getResult())
+    if (!dayjs(planSettings.date).isBefore(dayjs(), 'month')) {
+      const plan = this._create(planSettings)
+      // plan.date = dayjs(plan.date).format('YYYY-MM')
+      this._deleteSameDate(plan.date)
+      this._add(plan)
+      result = result.concat(this.getResult())
 
-    const tables = new Tables(this.state)
-    for (const table of current_table_id ? [tables._find(current_table_id)] : tables.state.tables.data) {
-      table.plans_id.push(plan._id)
+      const tables = new Tables(this.state)
+      for (const table of current_table_id ? [tables._find(current_table_id)] : tables.state.tables.data) {
+        table.plans_id.push(plan._id)
+      }
+      result = result.concat(tables.getResult())
     }
-    result = result.concat(tables.getResult())
 
     return result
   }
   change(obj) {
     let result = []
-    let planSettings = cloneByJSON(obj)
+    const planSettings = this._format_settings(obj)
 
-    if (planSettings.sum !== undefined) planSettings.sum = +planSettings.sum
-    if (!planSettings.sum || planSettings.sum < 0) throw new Error('Сумма должна быть больше нуля')
-    if (planSettings.date !== undefined) planSettings.date = dayjs(planSettings.date).format('YYYY-MM')
+    if (planSettings.sum <= 0) return result
 
     if (planSettings.dateLast) {
       this._addMorePlans(planSettings)
@@ -333,6 +399,91 @@ export class Plans extends Entities {
     })
 
     super.delete(id)
+    result = result.concat(this.getResult())
+
+    return result
+  }
+  checkPlans() {
+    let result = []
+
+    this.deleteDublicates()
+    this.updatePastPlans()
+    this.deleteEmptyPlans()
+
+    result = result.concat(this.getResult())
+
+    return result
+  }
+  deleteEmptyPlans() {
+    let result = []
+
+    const idsToDelete = []
+    this.state[this.field].data.forEach((plan) => {
+      if (Math.round(+plan.sum) > 0) return
+      idsToDelete.push(plan._id)
+    })
+
+    idsToDelete.forEach((id) => this.delete(id))
+
+    if (idsToDelete.length) result = result.concat(this.getResult())
+
+    return result
+  }
+  deleteDublicates() {
+    let result = []
+
+    const idsToDelete = []
+    const plansExistingObj = {}
+    this.state[this.field].data.forEach((plan) => {
+      if (plansExistingObj[plan.date]?.[plan.category_id]) {
+        idsToDelete.push(plan._id)
+        return
+      }
+
+      if (!plansExistingObj[plan.date]) plansExistingObj[plan.date] = {}
+      plansExistingObj[plan.date][plan.category_id] = true
+    })
+
+    idsToDelete.forEach((id) => this.delete(id))
+
+    if (idsToDelete.length) result = result.concat(this.getResult())
+
+    return result
+  }
+  updatePastPlans() {
+    let result = []
+
+    const pastPlansObj = {}
+    const now = dayjs()
+    this.state[this.field].data.forEach((plan) => {
+      if (!now.isAfter(plan.date, 'month')) return
+
+      plan.sum = 0
+      if (!pastPlansObj[plan.date]) pastPlansObj[plan.date] = {}
+      if (pastPlansObj[plan.date][plan.category_id]) {
+        console.log('fuck', pastPlansObj[plan.date][plan.category_id])
+      }
+      pastPlansObj[plan.date][plan.category_id] = plan
+    })
+
+    this.state.actions.data.forEach((action) => {
+      const date = dayjs(action.date).format('YYYY-MM')
+      if (!now.isAfter(date, 'month')) return
+
+      let plan = pastPlansObj[date]?.[action.category_id]
+      if (plan) return (plan.sum += +action.sum)
+
+      plan = this._create({
+        date,
+        sum: +action.sum,
+        category_id: action.category_id,
+      })
+      this._add(plan)
+
+      if (!pastPlansObj[date]) pastPlansObj[date] = {}
+      pastPlansObj[date][action.category_id] = plan
+    })
+
     result = result.concat(this.getResult())
 
     return result
@@ -359,8 +510,10 @@ export class Config extends Entities {
     return 0
   }
   _round_balances() {
-    this.state[this.field].data.start_balance = Math.round(this.state[this.field].data.start_balance * 100) / 100
-    this.state[this.field].data.start_savings = Math.round(this.state[this.field].data.start_savings * 100) / 100
+    // this.state[this.field].data.start_balance = Math.round(this.state[this.field].data.start_balance * 100) / 100
+    // this.state[this.field].data.start_savings = Math.round(this.state[this.field].data.start_savings * 100) / 100
+    this.state[this.field].data.start_balance = Math.round(this.state[this.field].data.start_balance)
+    this.state[this.field].data.start_savings = Math.round(this.state[this.field].data.start_savings)
   }
   _fix_start(action) {
     if (this._compare_dates(action.date) === 1) return
@@ -437,7 +590,8 @@ export class Config extends Entities {
         result.savings += isExpense ? action.sum : -action.sum
       }
     })
-    this._round_balances()
+    result.balance = Math.round(result.balance)
+    result.savings = Math.round(result.savings)
 
     return result
   }

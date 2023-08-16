@@ -49,7 +49,7 @@ const defaultActions = Array(5)
 const defaultPlans = Array(28)
   .fill()
   .map((_, idx) => ({
-    sum: Math.round(Math.random() * 100000) / 100,
+    sum: Math.round(Math.random() * 1000),
     category_id: `${idx}`,
   }))
 

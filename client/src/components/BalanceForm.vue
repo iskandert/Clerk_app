@@ -98,7 +98,10 @@ export default {
   },
   watch: {},
   mounted() {
+    const configData = this.$store.getters.getData('config') || {}
     this.newCheck.checking_date = new Date()
+    this.newCheck.checked_balance = configData.checked_balance || 0
+    this.newCheck.checked_savings = configData.checked_savings || 0
   },
 }
 </script>

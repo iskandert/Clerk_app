@@ -29,6 +29,7 @@ import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import { getInitWidth, notifyWrap } from '../services/utils'
 import { layoutSizing } from '../config'
+import { Plans } from '../services/changings'
 
 export default {
   components: {
@@ -42,6 +43,9 @@ export default {
     async getAllData() {
       try {
         await this.$store.dispatch('getDataList', { col: 'data' })
+        const plans = new Plans()
+        const changes = plans.checkPlans()
+        await this.$store.dispatch('saveDataChanges', changes)
       } catch (err) {
         notifyWrap(err)
       }

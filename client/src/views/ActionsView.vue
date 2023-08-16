@@ -11,13 +11,13 @@
                   <el-link type="primary" @click="openBalanceDialog">
                     Остаток:
                   </el-link>
-                  {{ getFormattedCount(currentBalance.balance, { mode: 'currency' }) }}
+                  {{ getFormattedCount(currentBalance.balance, { mode: 'currency', accuracy: 0 }) }}
                 </p>
                 <p class="with-savings_balance">
                   <el-link type="primary" @click="openBalanceDialog">
                     Накопления:
                   </el-link>
-                  {{ getFormattedCount(currentBalance.savings, { mode: 'currency' }) }}
+                  {{ getFormattedCount(currentBalance.savings, { mode: 'currency', accuracy: 0 }) }}
                 </p>
               </template>
               <template v-else>

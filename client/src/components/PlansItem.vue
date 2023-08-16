@@ -33,18 +33,17 @@ export default {
   },
   computed: {
     isDefinedSum() {
-      return this.sum !== undefined
+      return this.sum !== undefined || this.isPast
     },
     isPast() {
       return this.date && this.$dayjs(this.date).isBefore(this.$dayjs(), 'month')
     },
     formattedSum() {
-      return getFormattedCount(+this.sum, { accuracy: 0 })
+      return getFormattedCount(+this.sum || 0, { accuracy: 0 })
     }
   },
   methods: {
     handleClick() {
-      console.log(this.isPast, this.isDefinedSum, this.type === 'one');
       if (this.isPast && this.isDefinedSum && this.type === 'one') return
       this.$emit('call-to-edit')
     }
