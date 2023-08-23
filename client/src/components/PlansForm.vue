@@ -190,7 +190,7 @@ export default {
       this.sumPartsAll.splice(index, 1)
     },
     replaceSumPartValue(value) {
-      let result = value.replace(/(?<=^-\d*)-|(?<=\d+\.\d*)[-\.]|[^-\d\.]|^\./g, '')
+      let result = value.replace(/(?<=^(-\d*)|(\d+))-|(?<=\d+\.\d*)[-\.]|[^-\d\.]|^\./g, '')
       return result
     },
     handleCancelCategory() {
