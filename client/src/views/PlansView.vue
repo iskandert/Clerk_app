@@ -58,7 +58,7 @@
               </div>
             </template>
             <template #default="{ row: category }">
-              <span class="category-name"
+              <span class="category-name" @click="() => !category.children ? callEditCategory(category._id) : undefined"
                 :class="[category.status, category.type, category.children ? 'parent-category' : '']">
                 <template v-if="category.type === 'default'">
                   <el-icon v-if="category.status === 'income'" class="symbol plus" :size="10">
@@ -76,7 +76,10 @@
                     <Unlock />
                   </el-icon>
                 </template>
-                <span>{{ category.name }}</span>
+                <el-link v-if="!category.children" @click="callEditCategory(category._id)">
+                  {{ category.name }}
+                </el-link>
+                <span v-else>{{ category.name }}</span>
               </span>
             </template>
           </el-table-column>
@@ -113,7 +116,7 @@
             </template>
           </el-table-column>
           <template #append>
-            <div class="add-category-row">
+            <div class="add-category-row" @click="openCategoryDialog">
               <el-icon :size="12">
                 <Plus />
               </el-icon>
@@ -168,7 +171,10 @@
                 <div class="table-title category-header" :class="[category.status, category.type]">
                   <PlansPercent v-if="isShowedPercentage" :current-sum="60000" :plan-sum="14000" :status="category.status"
                     style="margin-bottom:4px" />
-                  <div>{{ category.type ? category.name : 'Всего' }}</div>
+                  <el-link v-if="category.type" @click="callEditCategory(category._id)">
+                    {{ category.name }}
+                  </el-link>
+                  <div v-else>Всего</div>
                 </div>
               </template>
               <template #default="{ row: date }">
@@ -188,15 +194,26 @@
         </el-table>
       </div>
       <div class="button-container">
-        <el-button round type="primary" :size="isMobileSize ? 'large' : ''">Добавить план</el-button>
+        <el-button @click="openPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''">
+          Добавить план
+        </el-button>
       </div>
     </el-card>
 
-    <el-dialog width="min(100vw, 500px)" v-model="planDialog" :append-to-body="true" :before-close="handleCancelPlan">
+    <el-dialog width="min(100vw, 500px)" v-model="planDialog" :append-to-body="true" :before-close="handleCancelPlan"
+      :destroy-on-close="true">
       <template #header>
         <h4>{{ isEditMode ? 'Редактировать' : 'Добавить' }} план</h4>
       </template>
       <PlansForm @call-to-end="handleCancelPlan" class="dialog" />
+    </el-dialog>
+
+    <el-dialog width="min(100vw, 500px)" v-model="categoryDialog" :append-to-body="true"
+      :before-close="handleCancelCategory" :destroy-on-close="true">
+      <template #header>
+        <h4>{{ isEditCategory ? 'Редактировать' : 'Добавить' }} категорию</h4>
+      </template>
+      <CategoriesForm @call-to-end="handleCancelCategory" class="dialog" />
     </el-dialog>
   </div>
 </template>
@@ -207,11 +224,12 @@ import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import PlansForm from '../components/PlansForm.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount } from '../services/utils'
-import { Lock, Unlock, Plus, Minus, Coin, Refresh, Sort, MoreFilled } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
+import CategoriesForm from '../components/CategoriesForm.vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -232,6 +250,9 @@ export default {
       //
       planDialog: false,
       isEditMode: false,
+      //
+      categoryDialog: false,
+      isEditCategory: false,
       //
       getFormattedCount
     }
@@ -358,10 +379,10 @@ export default {
         replace: true
       })
     },
-    callEditPlan(plan) {
+    async callEditPlan(plan) {
       if (plan?._id) this.isEditMode = true
       if (plan) {
-        this.$router.push({
+        await this.$router.push({
           path: '/plans',
           query: {
             ...plan,
@@ -372,6 +393,36 @@ export default {
       }
       this.openPlanDialog()
     },
+    //
+    handleCancelCategory() {
+      this.categoryDialog = false
+      this.isEditCategory = false
+      this.$router.push({
+        path: '/plans',
+        replace: true
+      })
+    },
+    async callEditCategory(category_id) {
+      let editedCateg
+      if (category_id) {
+        editedCateg = this.categoriesStored.find(({ _id }) => _id === category_id)
+      }
+      if (editedCateg) {
+        this.isEditCategory = true
+        await this.$router.push({
+          path: '/plans',
+          query: {
+            ...editedCateg,
+            isEdit: true,
+          },
+          replace: true
+        })
+      }
+      this.openCategoryDialog()
+    },
+    openCategoryDialog() {
+      this.categoryDialog = true
+    }
   },
 }
 </script>
@@ -476,6 +527,10 @@ export default {
   margin-left: -18px;
 }
 
+.category-name .el-link {
+  font-weight: inherit;
+}
+
 :deep(.el-table__cell):has(.category-name.income) {
   background-color: var(--el-color-success-light-8);
   font-weight: bold;
@@ -510,22 +565,26 @@ export default {
 }
 
 .symbol.plus,
-.symbol.plus+span {
+.symbol.plus+span,
+.symbol.plus+.el-link:not(:hover, :active) {
   color: var(--el-color-success);
 }
 
 .symbol.unlock,
-.symbol.unlock+span {
+.symbol.unlock+span,
+.symbol.unlock+.el-link:not(:hover, :active) {
   color: var(--el-color-danger-dark-2);
 }
 
 .symbol.lock,
-.symbol.lock+span {
+.symbol.lock+span,
+.symbol.lock+.el-link:not(:hover, :active) {
   color: var(--el-color-primary-dark-1);
 }
 
 .symbol.minus,
-.symbol.minus+span {
+.symbol.minus+span,
+.symbol.minus+.el-link:not(:hover, :active) {
   color: var(--el-color-info);
 }
 
@@ -553,19 +612,27 @@ export default {
   word-break: keep-all;
 }
 
-.category-header.income {
+.category-header .el-link {
+  font-weight: inherit;
+}
+
+.category-header.income,
+.category-header.income .el-link:not(:hover, :active) {
   color: var(--el-color-success-dark-2);
 }
 
-.category-header.income.savings {
+.category-header.income.savings,
+.category-header.income.savings .el-link:not(:hover, :active) {
   color: var(--el-color-danger-dark-2);
 }
 
-.category-header.expense {
+.category-header.expense,
+.category-header.expense .el-link:not(:hover, :active) {
   color: var(--el-color-info-dark-2);
 }
 
-.category-header.expense.savings {
+.category-header.expense.savings,
+.category-header.expense.savings .el-link:not(:hover, :active) {
   color: var(--el-color-primary-dark-1);
 }
 

@@ -6,7 +6,12 @@
         <el-input-number v-model="newPlan.sum" :min="1" :step="1000" @change="sumPartsAll = []" />
       </el-form-item>
       <el-form-item label="Категория" prop="category_id">
-        <el-select v-model="newPlan.category_id" filterable>
+        <el-select v-model="newPlan.category_id" filterable default-first-option>
+          <li class="button_add-category">
+            <el-button type="primary" round :icon="iconPlus" @click="openCategoryDialog">
+              Создать новую
+            </el-button>
+          </li>
           <el-option-group label="Расходы">
             <el-option v-for="({ name, _id }, index) in categories?.expense" :key="index" :value="_id"
               :label="name"></el-option>
@@ -38,17 +43,24 @@
       <el-button v-if="isEditMode" @click="processPlan('delete')" type="danger" :icon="iconDelete" round>
         Удалить
       </el-button>
-      <el-button v-if="isEditMode" @click="cancelAdding" :icon="iconCancel" round>
+      <el-button v-if="isEditMode" @click="cancelProcessing" :icon="iconCancel" round>
         Отменить
       </el-button>
       <el-button v-if="isEditMode" type="success" @click="processPlan('change')" :icon="iconCheck" round>
         Сохранить
       </el-button>
-      <el-button v-else :class="{ 'el-button--primary': !isLightTheme }" @click="processPlan('add')" :icon="iconCheck"
-        round>
+      <el-button v-else type="primary" @click="processPlan('add')" :icon="iconCheck" round>
         Сохранить
       </el-button>
     </div>
+
+    <el-dialog width="min(100vw, 500px)" v-model="categoryDialog" :append-to-body="true"
+      :before-close="handleCancelCategory" :destroy-on-close="true">
+      <template #header>
+        <h4>Добавить категорию</h4>
+      </template>
+      <CategoriesForm @call-to-end="handleCancelCategory" class="dialog" />
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -62,6 +74,7 @@ import { shallowRef } from 'vue';
 import { cloneByJSON, notifyWrap } from '../services/utils';
 import { Plans } from '../services/changings';
 import InfoBalloon from '../components/InfoBalloon.vue'
+import CategoriesForm from './CategoriesForm.vue';
 
 const clearPlan = {
   _id: undefined,
@@ -74,7 +87,8 @@ const clearPlan = {
 
 export default {
   components: {
-    InfoBalloon
+    InfoBalloon,
+    CategoriesForm
   },
   props: {},
   emits: ['call-to-end'],
@@ -98,12 +112,10 @@ export default {
       multipleSum: [],
       sumPart: '',
       sumPartsAll: [],
+      categoryDialog: false,
     }
   },
   computed: {
-    isLightTheme() {
-      return this.$attrs.class?.includes('light')
-    },
     categoriesStored() {
       return this.$store.getters.getData('categories')
     },
@@ -136,7 +148,7 @@ export default {
           if (mode === 'delete') changes = plans.delete(this.newPlan._id)
           if (mode === 'change') changes = plans.change(this.newPlan)
           if (mode === 'add') changes = plans.add(this.newPlan)
-          this.cancelAdding()
+          this.cancelProcessing()
           await this.$store.dispatch('saveDataChanges', changes)
         } catch (err) {
           notifyWrap(err)
@@ -158,7 +170,7 @@ export default {
         process()
       })
     },
-    cancelAdding() {
+    cancelProcessing() {
       this.$emit('call-to-end')
     },
     readFromRouteQuery() {
@@ -180,6 +192,12 @@ export default {
     replaceSumPartValue(value) {
       let result = value.replace(/(?<=^-\d*)-|(?<=\d+\.\d*)[-\.]|[^-\d\.]|^\./g, '')
       return result
+    },
+    handleCancelCategory() {
+      this.categoryDialog = false
+    },
+    openCategoryDialog() {
+      this.categoryDialog = true
     }
   },
   watch: {
@@ -237,6 +255,12 @@ export default {
 
 .form-container.dialog h5:first-of-type {
   display: none;
+}
+
+.button_add-category {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
 }
 
 .el-form-item.multipleSum {

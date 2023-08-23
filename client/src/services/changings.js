@@ -140,9 +140,18 @@ export class Categories extends Entities {
 
     const categ_plans = this.state.plans.data.filter(({ category_id }) => entity._id === category_id)
     if (categ_plans.length) {
+      const isRedefinedCategoryExist = redefined_category_id && this._find(redefined_category_id).index >= 0
+      const redefined_category_plans = isRedefinedCategoryExist
+        ? this.state.plans.data.filter(({ category_id }) => {
+            return category_id === redefined_category_id
+          }) || []
+        : []
+
       const plans = new Plans(this.state)
       categ_plans.forEach((plan) => {
-        if (redefined_category_id && this._find(redefined_category_id).index >= 0) {
+        if (isRedefinedCategoryExist) {
+          const sum = redefined_category_plans.find(({ date }) => dayjs(date).isSame(plan.date, 'month'))?.sum
+          plan.sum += sum || 0
           plans.add({
             ...plan,
             category_id: redefined_category_id,
