@@ -47,7 +47,9 @@
 
         <el-table class="table-normal" :data="categoriesList" row-key="_id" default-expand-all border
           max-height="var(--table-height)" @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout"
-          @keydown.up.prevent @keydown.down.prevent @keydown.left.prevent @keydown.right.prevent>
+          @keydown.up.prevent @keydown.down.prevent @keydown.left.prevent @keydown.right.prevent
+          :header-cell-class-name="getClassName">
+          <!-- :cell-class-name="getClassName" -->
           <el-table-column :width="isMobileSize ? 130 : 180" fixed class="category-column">
             <template #header>
               <div class="desktop-only">
@@ -95,7 +97,7 @@
           </el-table-column>
           <el-table-column v-for="(date, index) in datesList" :key="index" width="120">
             <template #header>
-              <div class="table-title dates">
+              <div class="table-title dates" :class="{ yearStart: isYearStart(date) }">
                 <span class="desktop-only">{{ $dayjs(date).format('MMMM YY') }}</span>
                 <span class="mobile-only">{{ $dayjs(date).format('MM.YYYY') }}</span>
                 <template v-if="!(datesRange?.at(-1) < date)">
@@ -115,13 +117,13 @@
             </template>
             <template #default="{ row: category }">
               <template v-if="!category.children">
-                <div class="plan-item">
+                <div class="plan-item" :class="{ yearStart: isYearStart(date) }">
                   <PlansItem
                     @call-to-edit="callEditPlan(plansMatrix?.[date]?.[category._id] || { date, category_id: category._id })"
                     :sum="plansMatrix?.[date]?.[category._id]?.sum" :status="category.status" :date="date" />
                 </div>
               </template>
-              <div class="plans-sum" v-else>
+              <div class="plans-sum" :class="{ yearStart: isYearStart(date) }" v-else>
                 <PlansItem :sum="plansSumsByDates?.[date]?.[category.status]?.balance || 0" type="all"
                   :status="category.status" />
               </div>
@@ -150,7 +152,7 @@
               </div>
             </template>
             <template #default="{ row: date }">
-              <span class="date">
+              <span class="date" :class="{ yearStart: isYearStart(date) }">
                 {{ $dayjs(date).format(isMobileSize ? 'MM.YYYY' : 'YYYY MMMM') }}
               </span>
             </template>
@@ -161,7 +163,7 @@
             </template>
             <template #default="{ row: date }">
               <PlansBalance :sum="balancesByDates[date]?.balance" :dinamic="balancesByDates[date]?.balanceDiff"
-                type="default" :is-show-dinamic="isShowedDinamic" />
+                type="default" :is-show-dinamic="isShowedDinamic" :class="{ yearStart: isYearStart(date) }" />
             </template>
           </el-table-column>
           <el-table-column v-if="isShowedSavings" width="110" fixed>
@@ -170,7 +172,7 @@
             </template>
             <template #default="{ row: date }">
               <PlansBalance :sum="balancesByDates[date]?.savings" :dinamic="balancesByDates[date]?.savingsDiff"
-                type="savings" :is-show-dinamic="isShowedDinamic" />
+                type="savings" :is-show-dinamic="isShowedDinamic" :class="{ yearStart: isYearStart(date) }" />
             </template>
           </el-table-column>
           <el-table-column v-for="(categGroup, index) in plansByCategories" :key="index" :label="categGroup.name">
@@ -195,12 +197,12 @@
               </template>
               <template #default="{ row: date }">
                 <template v-if="category.type">
-                  <div class="plan-item">
+                  <div class="plan-item" :class="{ yearStart: isYearStart(date) }">
                     <PlansItem @call-to-edit="callEditPlan(category.plans[date] || { date, category_id: category._id })"
                       :sum="category.plans[date]?.sum" :status="category.status" :date="date" />
                   </div>
                 </template>
-                <div class="plans-sum" v-else>
+                <div class="plans-sum" :class="{ yearStart: isYearStart(date) }" v-else>
                   <PlansItem :sum="plansByDatesObj[date]?.sums?.[category.status] || 0" type="all"
                     :status="category.status" />
                 </div>
@@ -413,6 +415,15 @@ export default {
     },
     isCurrentMonth(date) {
       return this.$dayjs(date).isSame(this.$dayjs(), 'month')
+    },
+    getClassName({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex !== 4) return ''
+      console.log('row:', row);
+      console.log('column:', column);
+      return ''
+    },
+    isYearStart(date) {
+      return this.$dayjs(date).month() === 0
     },
     openPlanDialog() {
       this.planDialog = true
@@ -680,6 +691,41 @@ export default {
 .category-header.expense.savings,
 .category-header.expense.savings .el-link:not(:hover, :active) {
   color: var(--el-color-primary-dark-1);
+}
+
+.table .table-normal :deep(.el-table__cell):has(.yearStart),
+.table .table-reversed :deep(.el-table__cell):has(.yearStart) {
+  position: relative;
+}
+
+.table .table-normal :deep(.el-table__cell):has(.yearStart)::before,
+.table .table-reversed :deep(.el-table__cell):has(.yearStart)::before {
+  content: ' ';
+  display: block;
+  background-color: var(--el-color-gray-light-5);
+  position: absolute;
+
+}
+
+.table .table-normal :deep(.el-table__cell):has(.yearStart)::before {
+  /*border-left: 2px solid var(--el-color-primary-dark-2);*/
+  width: 3px;
+  height: 100%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.table .table-reversed :deep(.el-table__cell):has(.yearStart)::before {
+  width: 100%;
+  height: 3px;
+  left: 0;
+  top: 0;
+  transform: translateY(-50%);
+
+}
+
+.table .table-reversed :deep(.el-table__cell):has(.yearStart) {
+  /*border-top: 3px solid var(--el-color-gray-light-5);*/
 }
 
 .date {
