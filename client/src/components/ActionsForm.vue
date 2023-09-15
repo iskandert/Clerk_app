@@ -3,54 +3,59 @@
     <div class="form-container">
       <h5>{{ mode === 'mini' ? 'Быстрое добавление' : isEditMode ? 'Редактировать операцию' : 'Добавить операцию' }}</h5>
       <el-form :model="newAction" :rules="actionRules" label-position="top" ref="actionForm">
-        <el-form-item label="Сумма операции" prop="sum">
-          <el-input-number v-model="newAction.sum" :min="1" :step="100" @change="sumPartsAll = []" />
-        </el-form-item>
-        <el-form-item label="Категория операции" prop="category_id">
-          <el-select v-model="newAction.category_id" filterable default-first-option>
-            <li class="button_add-category">
-              <el-button type="primary" round :icon="iconPlus" @click="openCategoryDialog">
-                Создать новую
-              </el-button>
-            </li>
-            <el-option-group label="Расходы">
-              <el-option v-for="({ name, _id }, index) in categories?.expense" :key="index" :value="_id"
-                :label="name"></el-option>
-            </el-option-group>
-            <el-option-group label="Доходы">
-              <el-option v-for="({ name, _id }, index) in categories?.income" :key="index" :value="_id"
-                :label="name"></el-option>
-            </el-option-group>
-            <el-option-group label="Накопления">
-              <el-option v-for="({ name, _id }, index) in categories?.savings" :key="index" :value="_id"
-                :label="name"></el-option>
-            </el-option-group>
-          </el-select>
-        </el-form-item>
+        <div class="form-items">
+          <el-form-item label="Сумма операции" prop="sum">
+            <el-input-number v-model="newAction.sum" :min="1" :step="100" @change="sumPartsAll = []" />
+          </el-form-item>
+          <el-form-item label="Категория операции" prop="category_id">
+            <el-select v-model="newAction.category_id" filterable default-first-option>
+              <li class="button_add-category">
+                <el-button type="primary" round :icon="iconPlus" @click="openCategoryDialog">
+                  Создать новую
+                </el-button>
+              </li>
+              <el-option-group label="Расходы">
+                <el-option v-for="({ name, _id }, index) in categories?.expense" :key="index" :value="_id"
+                  :label="name"></el-option>
+              </el-option-group>
+              <el-option-group label="Доходы">
+                <el-option v-for="({ name, _id }, index) in categories?.income" :key="index" :value="_id"
+                  :label="name"></el-option>
+              </el-option-group>
+              <el-option-group label="Накопления">
+                <el-option v-for="({ name, _id }, index) in categories?.savings" :key="index" :value="_id"
+                  :label="name"></el-option>
+              </el-option-group>
+            </el-select>
+          </el-form-item>
+        </div>
         <template v-if="mode === 'full'">
           <h6>Дополнительно</h6>
-          <span></span>
-          <el-form-item label="Дата операции" prop="date">
-            <el-date-picker v-model="newAction.date" :disabled-date="(time) => time.getTime() > Date.now()" type="date"
-              placeholder="Выберите дату" format="DD.MM.YYYY" />
-          </el-form-item>
-          <el-form-item label="Составная сумма" class="multipleSum">
-            <template #label>
-              Составная сумма
-              <InfoBalloon :data="['Вводите суммы через `Enter`, для вычитания из результата добавьте `-` перед суммой.',
-                'Десятичный разделитель - `.` (точка).']" />
-            </template>
-            <el-input v-model="sumPart" placeholder="Введите сумму по частям" :formatter="replaceSumPartValue"
-              :parser="replaceSumPartValue" @keyup.enter="addSumPart" @blur="addSumPart"></el-input>
-            <div class="sum_parts">
-              <el-tag v-for="(part, idx) in sumPartsAll" :key="idx" closable @close="deleteSumPart(idx)">
-                {{ `${Math.round(+part * 100) / 100}`.replace(/\./g, ',') }}
-              </el-tag>
-            </div>
-          </el-form-item>
-          <el-form-item class="comment" label="Комментарий">
-            <el-input v-model="newAction.comment" :rows="2" type="textarea" placeholder="Подробности операции"></el-input>
-          </el-form-item>
+          <!-- <span></span> -->
+          <div class="form-items">
+            <el-form-item label="Дата операции" prop="date">
+              <el-date-picker v-model="newAction.date" :disabled-date="(time) => time.getTime() > Date.now()" type="date"
+                placeholder="Выберите дату" format="DD.MM.YYYY" />
+            </el-form-item>
+            <el-form-item label="Составная сумма" class="multipleSum">
+              <template #label>
+                Составная сумма
+                <InfoBalloon :data="['Вводите суммы через `Enter`, для вычитания из результата добавьте `-` перед суммой.',
+                  'Десятичный разделитель - `.` (точка).']" />
+              </template>
+              <el-input v-model="sumPart" placeholder="Введите сумму по частям" :formatter="replaceSumPartValue"
+                :parser="replaceSumPartValue" @keyup.enter="addSumPart" @blur="addSumPart"></el-input>
+              <div class="sum_parts">
+                <el-tag v-for="(part, idx) in sumPartsAll" :key="idx" closable @close="deleteSumPart(idx)">
+                  {{ `${Math.round(+part * 100) / 100}`.replace(/\./g, ',') }}
+                </el-tag>
+              </div>
+            </el-form-item>
+            <el-form-item class="comment" label="Комментарий">
+              <el-input v-model="newAction.comment" :rows="2" type="textarea"
+                placeholder="Подробности операции"></el-input>
+            </el-form-item>
+          </div>
         </template>
       </el-form>
       <div class="link" v-if="mode === 'mini'">
@@ -271,9 +276,9 @@ export default {
   box-shadow: none;
 }
 
-.el-form {
+.el-form>.form-items {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   column-gap: 12px;
   margin-top: 4px;
 }

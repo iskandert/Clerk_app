@@ -9,12 +9,7 @@ import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/display.css'
 import axios from 'axios'
 import ru from 'element-plus/dist/locale/ru.js'
-import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-import weekday from 'dayjs/plugin/weekday'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import 'dayjs/locale/ru'
-dayjs.locale('ru')
+import { dayjs } from './services/utils'
 
 // const user = store.getters.getUser
 const app = createApp(App)
@@ -25,7 +20,6 @@ app.use(router).use(store).use(ElementPlus, {
   locale: ru,
 })
 
-dayjs.extend(customParseFormat).extend(weekday).extend(relativeTime)
 app.config.globalProperties.$dayjs = dayjs
 
 app.mount('#app')

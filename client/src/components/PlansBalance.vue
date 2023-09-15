@@ -3,7 +3,7 @@
     <div class="size" :class="{ only: !isShowDinamic }">
       {{ formattedSum }}
     </div>
-    <div v-if="isShowDinamic && dinamic" class="dinamic">
+    <div v-if="isShowDinamic" class="dinamic">
       <el-icon v-if="type === 'default'" color="var(--el-text-color-primary)">
         <Coin />
       </el-icon>
@@ -11,10 +11,9 @@
         <Lock />
       </el-icon>
       <div class="dinamic-value" :style="backgroundDinamic">
-        {{ dinamic > 0 ? '+ ' : '- ' }} {{ formattedDinamic }}
+        {{ dinamic > 0 ? '+ ' : dinamic < 0 ? '- ' : '' }} {{ formattedDinamic }} </div>
       </div>
     </div>
-  </div>
 </template>
 <script>
 import { getFormattedCount } from '../services/utils'

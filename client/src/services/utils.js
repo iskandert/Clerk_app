@@ -1,4 +1,11 @@
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import weekday from 'dayjs/plugin/weekday'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/ru'
+dayjs.locale('ru')
+dayjs.extend(customParseFormat).extend(weekday).extend(relativeTime)
+
 import { ElNotification } from 'element-plus'
 
 function getInitWidth(sizes) {
@@ -102,6 +109,7 @@ function compareByOrder(list, v1, v2) {
 
 export {
   //
+  dayjs,
   getInitWidth,
   setValueAfterDelay,
   notifyWrap,

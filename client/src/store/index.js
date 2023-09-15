@@ -15,7 +15,16 @@ const getDefaultState = () => {
     isMobileSize: false,
     fullScreenMode: false,
     meta: [],
-    data: {},
+    data: {
+      tables: {},
+      categories: {},
+      plans: {},
+      actions: {},
+      config: {},
+    },
+    calculatings: {
+      isFirstCalculate: true,
+    },
     viewportSize: getInitWidth(layoutSizing), // xs, sm, md, lg, xl
   }
 }
@@ -47,6 +56,9 @@ export default createStore({
     getData: (state) => (col) => {
       return state.data?.[col]?.data
     },
+    getCalcs: (state) => (col) => {
+      return state.calculatings?.[col]
+    },
     getAllData: (state) => state.data,
     // getViewportSize: (state) => (size) => {
     //   if (typeof size === 'string') {
@@ -69,6 +81,9 @@ export default createStore({
       let colParts = f.split('/').filter((str) => str)
       if (colParts.length === 2) return (state[colParts[0]][colParts[1]] = data)
       state[colParts[0]] = data
+    },
+    SET_CALC_DATA: (state, { f, data }) => {
+      state.calculatings[f] = data
     },
     SET_COL_DATA: (state, { f, data }) => {
       let colParts = f.split('/').filter((str) => str)

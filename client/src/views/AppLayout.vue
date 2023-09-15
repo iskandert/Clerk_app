@@ -30,11 +30,15 @@ import AppFooter from '../components/AppFooter.vue'
 import { getInitWidth, notifyWrap } from '../services/utils'
 import { layoutSizing } from '../config'
 import { Plans } from '../services/changings'
+import { watchDataChanging } from '../composables/watchers'
 
 export default {
   components: {
     AppHeader,
     AppFooter
+  },
+  setup() {
+    watchDataChanging()
   },
   data() {
     return {}

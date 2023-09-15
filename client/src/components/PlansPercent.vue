@@ -5,9 +5,9 @@
         {{ formattedSum }}
       </span>
     </div>
-    <div class="percent">
+    <div class="percent" v-if="showPercentage">
       <div class="percent-value" :style="backgroundPercent">
-        {{ percentage }}%
+        {{ percentageRounded }}%
       </div>
     </div>
   </div>
@@ -27,6 +27,14 @@ export default {
       type: Number,
       default: 0
     },
+    percentage: {
+      type: [Number],
+      default: 0
+    },
+    showPercentage: {
+      type: [Boolean],
+      default: true
+    },
     status: String, // income | expense
   },
   data() {
@@ -38,8 +46,8 @@ export default {
     formattedSum() {
       return getFormattedCount(this.currentSum, { accuracy: 0 })
     },
-    percentage() {
-      return Math.round(this.currentSum / this.planSum * 100)
+    percentageRounded() {
+      return Math.round(this.percentage)
     },
     backgroundPercent() {
       const percent = this.percentage

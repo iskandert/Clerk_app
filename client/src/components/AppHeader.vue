@@ -23,9 +23,10 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item :icon="iconUser" disabled>Профиль</el-dropdown-item>
-              <el-dropdown-item :icon="iconFull" @click="handleScreenModeClick(true)"
+              <el-dropdown-item :icon="iconFull" class="desktop-only" @click="handleScreenModeClick(true)"
                 v-if="!isFullMode">Развернуть</el-dropdown-item>
-              <el-dropdown-item :icon="iconNorm" @click="handleScreenModeClick(false)" v-else>Свернуть</el-dropdown-item>
+              <el-dropdown-item :icon="iconNorm" class="desktop-only" @click="handleScreenModeClick(false)"
+                v-else>Свернуть</el-dropdown-item>
               <el-dropdown-item :icon="iconExit" @click="handleSignoutClick">Выйти</el-dropdown-item>
               <el-dropdown-item :icon="iconDelete" @click="handleDeleteClick" class="delete_opt">
                 Удалить данные

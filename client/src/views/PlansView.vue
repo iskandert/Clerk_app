@@ -41,12 +41,11 @@
               <el-checkbox v-model="isReversedLayout">Перевернуть</el-checkbox>
             </div>
           </el-popover>
-          <!-- <el-switch v-model="isReversedLayout" active-text="По месяцам" inactive-text="По категориям"></el-switch> -->
         </div>
       </div>
       <div class="table">
 
-        <el-table class="table-normal" :data="plansByCategories" row-key="_id" default-expand-all border
+        <el-table class="table-normal" :data="categoriesList" row-key="_id" default-expand-all border
           max-height="var(--table-height)" @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout"
           @keydown.up.prevent @keydown.down.prevent @keydown.left.prevent @keydown.right.prevent>
           <el-table-column :width="isMobileSize ? 130 : 180" fixed class="category-column">
@@ -88,7 +87,10 @@
               <span class="span-wrap-keepall">Выполнение планов</span>
             </template>
             <template #default="{ row: category }">
-              <PlansPercent :current-sum="60000" :plan-sum="14000" :status="category.status" />
+              <PlansPercent :current-sum="progressByCategoriesIds[category._id]?.sum"
+                :percentage="progressByCategoriesIds[category._id]?.percentage"
+                :show-percentage="progressByCategoriesIds[category._id]?.percentage !== undefined"
+                :status="category.status" />
             </template>
           </el-table-column>
           <el-table-column v-for="(date, index) in datesList" :key="index" width="120">
@@ -96,21 +98,31 @@
               <div class="table-title dates">
                 <span class="desktop-only">{{ $dayjs(date).format('MMMM YY') }}</span>
                 <span class="mobile-only">{{ $dayjs(date).format('MM.YYYY') }}</span>
-                <PlansBalance v-if="isShowedBalance" :sum="10000000" :dinamic="9000" type="default"
-                  :is-show-dinamic="isShowedDinamic" />
-                <PlansBalance v-if="isShowedSavings" :sum="90000000" :dinamic="300000" type="savings"
-                  :is-show-dinamic="isShowedDinamic" style="margin:4px 0 4px" />
+                <template v-if="!(datesRange?.at(-1) < date)">
+                  <PlansBalance v-if="isShowedBalance" :sum="balancesByDates[date]?.balance"
+                    :dinamic="balancesByDates[date]?.balanceDiff" type="default" :is-show-dinamic="isShowedDinamic" />
+                  <PlansBalance v-if="isShowedSavings" :sum="balancesByDates[date]?.savings"
+                    :dinamic="balancesByDates[date]?.savingsDiff" type="savings" :is-show-dinamic="isShowedDinamic"
+                    style="margin:4px 0 4px" />
+                </template>
+                <template v-else>
+                  <PlansBalance v-if="isShowedBalance" :sum="balancesByDates[datesRange?.at(-1)]?.balance" :dinamic="0"
+                    type="default" :is-show-dinamic="isShowedDinamic" />
+                  <PlansBalance v-if="isShowedSavings" :sum="balancesByDates[datesRange?.at(-1)]?.savings" :dinamic="0"
+                    type="savings" :is-show-dinamic="isShowedDinamic" style="margin:4px 0 4px" />
+                </template>
               </div>
             </template>
             <template #default="{ row: category }">
-              <template v-if="category.plans">
+              <template v-if="!category.children">
                 <div class="plan-item">
-                  <PlansItem @call-to-edit="callEditPlan(category.plans[date] || { date, category_id: category._id })"
-                    :sum="category.plans[date]?.sum" :status="category.status" :date="date" />
+                  <PlansItem
+                    @call-to-edit="callEditPlan(plansMatrix?.[date]?.[category._id] || { date, category_id: category._id })"
+                    :sum="plansMatrix?.[date]?.[category._id]?.sum" :status="category.status" :date="date" />
                 </div>
               </template>
               <div class="plans-sum" v-else>
-                <PlansItem :sum="plansByDatesObj[date]?.sums?.[category.status] || 0" type="all"
+                <PlansItem :sum="plansSumsByDates?.[date]?.[category.status]?.balance || 0" type="all"
                   :status="category.status" />
               </div>
             </template>
@@ -148,7 +160,8 @@
               <span>Баланс</span>
             </template>
             <template #default="{ row: date }">
-              <PlansBalance :sum="10000000" :dinamic="9000" type="default" :is-show-dinamic="isShowedDinamic" />
+              <PlansBalance :sum="balancesByDates[date]?.balance" :dinamic="balancesByDates[date]?.balanceDiff"
+                type="default" :is-show-dinamic="isShowedDinamic" />
             </template>
           </el-table-column>
           <el-table-column v-if="isShowedSavings" width="110" fixed>
@@ -156,7 +169,8 @@
               <span>Накопления</span>
             </template>
             <template #default="{ row: date }">
-              <PlansBalance :sum="90000000" :dinamic="300000" type="savings" :is-show-dinamic="isShowedDinamic" />
+              <PlansBalance :sum="balancesByDates[date]?.savings" :dinamic="balancesByDates[date]?.savingsDiff"
+                type="savings" :is-show-dinamic="isShowedDinamic" />
             </template>
           </el-table-column>
           <el-table-column v-for="(categGroup, index) in plansByCategories" :key="index" :label="categGroup.name">
@@ -169,8 +183,10 @@
               :label="category.name">
               <template #header>
                 <div class="table-title category-header" :class="[category.status, category.type]">
-                  <PlansPercent v-if="isShowedPercentage" :current-sum="60000" :plan-sum="14000" :status="category.status"
-                    style="margin-bottom:4px" />
+                  <PlansPercent v-if="isShowedPercentage" :current-sum="progressByCategoriesIds[category._id]?.sum"
+                    :percentage="progressByCategoriesIds[category._id]?.percentage"
+                    :show-percentage="progressByCategoriesIds[category._id]?.percentage !== undefined"
+                    :status="category.status" style="margin-bottom:4px" />
                   <el-link v-if="category.type" @click="callEditCategory(category._id)">
                     {{ category.name }}
                   </el-link>
@@ -194,7 +210,7 @@
         </el-table>
       </div>
       <div class="button-container">
-        <el-button @click="openPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''">
+        <el-button @click="openPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''" :icon="iconCPlus">
           Добавить план
         </el-button>
       </div>
@@ -223,8 +239,8 @@ import ActionsBar from '../components/ActionsBar.vue'
 import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import PlansForm from '../components/PlansForm.vue'
-import { mapObject, getEntityField, getObjectFromArray, getFormattedCount } from '../services/utils'
-import { Lock, Unlock, Plus, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument } from '@element-plus/icons-vue'
+import { mapObject, getEntityField, getObjectFromArray, getFormattedCount, cloneByJSON } from '../services/utils'
+import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
 import CategoriesForm from '../components/CategoriesForm.vue'
 
@@ -237,6 +253,7 @@ export default {
       iconDinamic: shallowRef(Sort),
       iconFlip: shallowRef(Refresh),
       iconMore: shallowRef(MoreFilled),
+      iconCPlus: shallowRef(CirclePlusFilled),
     }
   },
   data() {
@@ -261,10 +278,45 @@ export default {
     categoriesStored() {
       return this.$store.getters.getData('categories') || []
     },
+    categoriesCalc() {
+      return this.$store.getters.getCalcs('categoriesIds') || {}
+    },
+    categoriesIndexes() {
+      return this.$store.getters.getCalcs('categoriesIndexesByIds') || {}
+    },
+    plansStored() {
+      return this.$store.getters.getData('plans') || []
+    },
+    plansCalc() {
+      return this.$store.getters.getCalcs('plansIdsByDatesByCategoriesIds') || {}
+    },
+    plansIndexes() {
+      return this.$store.getters.getCalcs('plansIndexesByIds') || {}
+    },
+    plansMatrix() {
+      const matrix = {}
+      for (const date in this.plansCalc) {
+        matrix[date] = {}
+        for (const category_id in this.plansCalc[date]) {
+          matrix[date][category_id] = this.plansStored?.[this.plansIndexes?.[this.plansCalc?.[date]?.[category_id]]]
+        }
+      }
+      console.log('matrix', matrix);
+      return matrix
+    },
+    plansSumsByDates() {
+      return this.$store.getters.getCalcs('sumsByDatesByCategoriesStatuses') || {}
+    },
+    progressByCategoriesIds() {
+      return this.$store.getters.getCalcs('progressByCategoriesIds') || {}
+    },
+    balancesByDates() {
+      return this.$store.getters.getCalcs('balancesByDates') || {}
+    },
     categoriesObj() {
       return getObjectFromArray(this.categoriesStored)
     },
-    categories() {
+    categoriesList() {
       let categories = [
         {
           _id: 'income',
@@ -279,48 +331,42 @@ export default {
           children: []
         },
       ]
-      this.categoriesStored?.forEach(category => {
-        if (category.status === 'expense') return categories[1].children.push(category)
-        return categories[0].children.push(category)
-      })
-      return categories.map(categs => {
-        categs.children = ['default', 'savings'].map(categType => categs.children
-          .filter(({ type }) => categType === type)
-          .sort((a, b) => {
+      categories.forEach(categs => {
+        categs.children = ['default', 'savings'].map(categType => {
+          return this.categoriesCalc[categs.status][categType].map(id => {
+            return cloneByJSON(this.categoriesStored[this.categoriesIndexes[id]])
+          }).sort((a, b) => {
             const [nameA, nameB] = [a.name, b.name]
             if (nameA < nameB) return -1
             if (nameA > nameB) return 1
             return 0
-          })).reduce((result, curr) => result.concat(curr))
-        return categs
+          })
+        }).reduce((result, curr) => result.concat(curr))
+        console.log(categs.children);
       })
-    },
-    plansStored() {
-      return this.$store.getters.getData('plans') || []
+      return categories
     },
     plansDates() {
       const dates = new Set(this.plansStored.map(({ date }) => this.$dayjs(date).format('YYYY-MM')))
       return Array.from(dates).sort((a, b) => new Date(b) - new Date(a))
     },
+    datesRange() {
+      return this.$store.getters.getCalcs('datesRange') || []
+    },
     datesList() {
-      const dates = []
-      let date = this.plansDates.at(-1)
-      let maxDate = this.plansDates[0]
-      let dateAfterYear = this.$dayjs(date).add(12, 'month').format('YYYY-MM')
-      if (!this.$dayjs(maxDate).isAfter(dateAfterYear)) maxDate = dateAfterYear
-      dates.push(date)
-      do {
-        date = this.$dayjs(date).add(1, 'month').format('YYYY-MM')
-        dates.push(date)
-      } while (!this.$dayjs(date).isAfter(maxDate))
+      const dates = cloneByJSON(this.datesRange)
+      let lastDate = dates.at(-1)
+      for (let monthsCount = 1; monthsCount <= 12; monthsCount++) {
+        dates.push(this.$dayjs(lastDate).add(monthsCount, 'month').format('YYYY-MM'))
+      }
       return dates
     },
     plansByCategories() {
       let plans = Object.fromEntries(this.categoriesStored.map(({ _id }) => [_id, []]))
       this.plansStored.forEach(plan => {
-        plans[plan.category_id].push(plan)
+        plans[plan.category_id].push(cloneByJSON(plan))
       })
-      return this.categories.map(categsGroups => ({
+      return this.categoriesList.map(categsGroups => ({
         ...categsGroups,
         children: categsGroups.children.map(categ => {
           categ.plans = mapObject(getObjectFromArray(plans[categ._id], 'date'), (k, v) => {
@@ -339,7 +385,7 @@ export default {
       this.plansStored.forEach(plan => {
         const date = this.$dayjs(plan.date).format('YYYY-MM')
         const status = this.categoriesObj[plan.category_id].status
-        plans[date].push(plan)
+        plans[date].push(cloneByJSON(plan))
         sums[date][status] = Math.round((sums[date][status] + plan.sum) * 100) / 100
       })
       return this.plansDates.map(date => {
