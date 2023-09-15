@@ -704,11 +704,9 @@ export default {
   display: block;
   background-color: var(--el-color-gray-light-5);
   position: absolute;
-
 }
 
 .table .table-normal :deep(.el-table__cell):has(.yearStart)::before {
-  /*border-left: 2px solid var(--el-color-primary-dark-2);*/
   width: 3px;
   height: 100%;
   top: 0;
@@ -721,11 +719,6 @@ export default {
   left: 0;
   top: 0;
   transform: translateY(-50%);
-
-}
-
-.table .table-reversed :deep(.el-table__cell):has(.yearStart) {
-  /*border-top: 3px solid var(--el-color-gray-light-5);*/
 }
 
 .date {
