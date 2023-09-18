@@ -10,6 +10,10 @@ import { watchTokenExpiring } from './composables/watchers';
 export default {
   setup() {
 
+    const localVuex = JSON.parse(window.localStorage.getItem('vuex'))
+    if (localVuex?.token) {
+      store.dispatch('login', localVuex)
+    }
     store.dispatch('setTokenExpiring')
     watchTokenExpiring()
   },

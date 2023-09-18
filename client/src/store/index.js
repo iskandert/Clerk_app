@@ -30,7 +30,7 @@ const getDefaultState = () => {
 }
 
 export default createStore({
-  plugins: [createPersistedState()],
+  // plugins: [createPersistedState()],
   state: getDefaultState(),
   getters: {
     isLoggedIn: (state) => {
@@ -72,6 +72,14 @@ export default createStore({
       state.token = token
       state.saved_in = saved_in
       state.expires_in = expires_in // prod
+      window.localStorage.setItem(
+        'vuex',
+        JSON.stringify({
+          token,
+          saved_in,
+          expires_in,
+        })
+      )
       // state.expires_in = 65 // test
     },
     SET_USER: (state, user) => {
@@ -115,6 +123,7 @@ export default createStore({
     logout: async ({ commit, getters }) => {
       console.log('sign out')
       commit('RESET')
+      window.localStorage.removeItem('vuex')
       axios.defaults.headers.common['Authorization'] = ''
       window.google.accounts.oauth2.revoke(getters.isLoggedIn)
       window.gapi.client.setToken('')
