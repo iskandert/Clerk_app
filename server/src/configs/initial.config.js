@@ -104,7 +104,9 @@ const initEntities = () => {
     })),
     config: {
       start_balance: 0,
+      start_savings: 0,
       checked_balance: null,
+      checked_savings: null,
       checked_balance_date: '',
     },
   }

@@ -94,12 +94,16 @@ function setBalancesByDates({ plans = [], categories = [], config = {} }) {
         savings: config.start_savings,
       }
     }
+    // console.log('prev balance', prevBalances?.balance)
+    // console.log('prev savings', prevBalances?.savings)
     balancesByDates[date] = {
       balance: prevBalances?.balance + currDufference.balance,
       balanceDiff: currDufference.balance,
       savings: prevBalances?.savings + currDufference.savings,
       savingsDiff: currDufference.savings,
     }
+    // console.log('curr balance', balancesByDates[date]?.balance)
+    // console.log('curr savings', balancesByDates[date]?.savings)
   })
   store.commit('SET_CALC_DATA', {
     f: 'balancesByDates',

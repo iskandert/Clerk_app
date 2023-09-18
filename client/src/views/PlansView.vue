@@ -47,9 +47,7 @@
 
         <el-table class="table-normal" :data="categoriesList" row-key="_id" default-expand-all border
           max-height="var(--table-height)" @row-click="toggleExpand" ref="plansTable" v-if="!isReversedLayout"
-          @keydown.up.prevent @keydown.down.prevent @keydown.left.prevent @keydown.right.prevent
-          :header-cell-class-name="getClassName">
-          <!-- :cell-class-name="getClassName" -->
+          @keydown.up.prevent @keydown.down.prevent @keydown.left.prevent @keydown.right.prevent>
           <el-table-column :width="isMobileSize ? 130 : 180" fixed class="category-column">
             <template #header>
               <div class="desktop-only">
@@ -415,12 +413,6 @@ export default {
     },
     isCurrentMonth(date) {
       return this.$dayjs(date).isSame(this.$dayjs(), 'month')
-    },
-    getClassName({ row, column, rowIndex, columnIndex }) {
-      if (columnIndex !== 4) return ''
-      console.log('row:', row);
-      console.log('column:', column);
-      return ''
     },
     isYearStart(date) {
       return this.$dayjs(date).month() === 0

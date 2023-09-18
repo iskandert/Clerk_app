@@ -27,6 +27,8 @@
                 v-if="!isFullMode">Развернуть</el-dropdown-item>
               <el-dropdown-item :icon="iconNorm" class="desktop-only" @click="handleScreenModeClick(false)"
                 v-else>Свернуть</el-dropdown-item>
+              <el-dropdown-item :icon="iconDownload" @click="handleDownloadClick">Скачать данные</el-dropdown-item>
+              <el-dropdown-item :icon="iconUpload" @click="handleUploadClick">Загрузить данные</el-dropdown-item>
               <el-dropdown-item :icon="iconExit" @click="handleSignoutClick">Выйти</el-dropdown-item>
               <el-dropdown-item :icon="iconDelete" @click="handleDeleteClick" class="delete_opt">
                 Удалить данные
@@ -36,6 +38,8 @@
         </el-dropdown>
       </div>
     </nav>
+
+    <input type="file" ref="fileInput" style="display: none" accept=".txt" @change="handleFileChange">
   </div>
 </template>
 <script>
@@ -43,7 +47,7 @@ import AuthBar from './AuthBar.vue'
 import LogoIcon from '../components/icons/LogoIcon.vue'
 import LogoText from '../components/icons/LogoText.vue'
 import { shallowRef } from 'vue'
-import { Tools, Close, User, Delete, FullScreen, Aim } from '@element-plus/icons-vue'
+import { Tools, Close, User, Delete, FullScreen, Aim, Upload, Download } from '@element-plus/icons-vue'
 import { notifyWrap } from '../services/utils'
 
 export default {
@@ -56,6 +60,8 @@ export default {
       iconDelete: shallowRef(Delete),
       iconFull: shallowRef(FullScreen),
       iconNorm: shallowRef(Aim),
+      iconDownload: shallowRef(Download),
+      iconUpload: shallowRef(Upload),
     }
   },
   computed: {
@@ -123,7 +129,50 @@ export default {
     },
     handleScreenModeClick(value) {
       this.$store.commit('SET_SCREEN_MODE', value)
-    }
+    },
+    handleDownloadClick() {
+      const link = document.createElement("a")
+      const data = this.$store.getters.getList('data')
+      const arrayedData = []
+      for (const field in data) {
+        arrayedData.push({
+          field,
+          data: data[field].data,
+        })
+      }
+      link.href = window.URL.createObjectURL(new Blob([JSON.stringify(arrayedData)]))
+      const suffix = (new Date()).toISOString().replace(/:|-|\.|T|Z/g, '')
+      link.setAttribute("download", `clerk_data_${suffix}.txt`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    },
+    handleUploadClick() {
+      this.$refs.fileInput.click()
+    },
+    handleFileChange(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async () => {
+        const fileContent = reader.result
+        try {
+          const parsedData = JSON.parse(fileContent)
+          for (const { field, data } of parsedData) {
+            if (!data
+              || (field === 'config' && !(typeof data === 'object' && !Array.isArray(data)))
+              || (field !== 'config' && !Array.isArray(data))) {
+              throw new Error('Файл поврежден')
+            }
+          }
+          await this.$store.dispatch('saveDataChanges', parsedData)
+        } catch (error) {
+          notifyWrap(error)
+        }
+      };
+
+      reader.readAsText(file);
+    },
   },
 }
 </script>
