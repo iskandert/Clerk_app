@@ -1,12 +1,16 @@
 <template>
-  <div>
-    <ActionsBar />
+  <div class="container">
+    <AnaliticChartBalance />
   </div>
 </template>
 <script>
-import ActionsBar from '../components/ActionsBar.vue';
+import AnaliticChartBalance from '../components/AnaliticChartBalance.vue';
+
 export default {
-  components: { ActionsBar }
+  components: { AnaliticChartBalance },
+  data() {
+    return {}
+  },
 }
 </script>
-<style ></style>
+<style scoped></style>

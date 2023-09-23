@@ -333,7 +333,7 @@ export default {
       ]
       categories.forEach(categs => {
         categs.children = ['default', 'savings'].map(categType => {
-          return this.categoriesCalc[categs.status][categType].map(id => {
+          return this.categoriesCalc[categs.status]?.[categType].map(id => {
             return cloneByJSON(this.categoriesStored[this.categoriesIndexes[id]])
           }).sort((a, b) => {
             const [nameA, nameB] = [a.name, b.name]
@@ -341,7 +341,7 @@ export default {
             if (nameA > nameB) return 1
             return 0
           })
-        }).reduce((result, curr) => result.concat(curr))
+        }).reduce((result, curr) => result?.concat(curr))
         console.log(categs.children);
       })
       return categories

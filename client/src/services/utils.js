@@ -107,6 +107,10 @@ function compareByOrder(list, v1, v2) {
   return idx1 - idx2
 }
 
+function getCssVar(str) {
+  return getComputedStyle(document.documentElement).getPropertyValue(str)
+}
+
 export {
   //
   dayjs,
@@ -122,4 +126,5 @@ export {
   filterObject,
   getObjectFromArray,
   compareByOrder,
+  getCssVar,
 }

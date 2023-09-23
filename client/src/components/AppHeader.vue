@@ -118,6 +118,7 @@ export default {
           type: 'success',
           message: 'Удалено'
         })
+        this.$store.dispatch('logout')
       } catch (e) {
         if (e === 'cancel') return this.$message({
           type: 'info',

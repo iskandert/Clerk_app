@@ -125,8 +125,8 @@ export default createStore({
       commit('RESET')
       window.localStorage.removeItem('vuex')
       axios.defaults.headers.common['Authorization'] = ''
-      window.google.accounts.oauth2.revoke(getters.isLoggedIn)
-      window.gapi.client.setToken('')
+      window.google?.accounts?.oauth2?.revoke?.(getters.isLoggedIn)
+      window.gapi?.client?.setToken?.('')
     },
     setTokenExpiring: ({ commit, getters }) => {
       if (!getters.isLoggedIn) return
