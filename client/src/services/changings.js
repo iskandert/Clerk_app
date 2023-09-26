@@ -469,9 +469,9 @@ export class Plans extends Entities {
 
       plan.sum = 0
       if (!pastPlansObj[plan.date]) pastPlansObj[plan.date] = {}
-      if (pastPlansObj[plan.date][plan.category_id]) {
-        console.log('fuck', pastPlansObj[plan.date][plan.category_id])
-      }
+      // if (pastPlansObj[plan.date][plan.category_id]) {
+      // console.log('yeah', pastPlansObj[plan.date][plan.category_id])
+      // }
       pastPlansObj[plan.date][plan.category_id] = plan
     })
 

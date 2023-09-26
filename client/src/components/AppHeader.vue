@@ -167,6 +167,10 @@ export default {
             }
           }
           await this.$store.dispatch('saveDataChanges', parsedData)
+          this.$message({
+            type: "success",
+            message: "Сохранено",
+          })
         } catch (error) {
           notifyWrap(error)
         }

@@ -150,6 +150,10 @@ export default {
           if (mode === 'add') changes = plans.add(this.newPlan)
           this.cancelProcessing()
           await this.$store.dispatch('saveDataChanges', changes)
+          this.$message({
+            type: "success",
+            message: "Сохранено",
+          })
         } catch (err) {
           notifyWrap(err)
         }

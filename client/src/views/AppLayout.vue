@@ -50,6 +50,10 @@ export default {
         const plans = new Plans()
         const changes = plans.checkPlans()
         await this.$store.dispatch('saveDataChanges', changes)
+        this.$message({
+          type: "success",
+          message: "Сохранено",
+        })
       } catch (err) {
         notifyWrap(err)
       }

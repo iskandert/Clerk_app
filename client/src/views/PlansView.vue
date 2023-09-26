@@ -301,7 +301,7 @@ export default {
           matrix[date][category_id] = this.plansStored?.[this.plansIndexes?.[this.plansCalc?.[date]?.[category_id]]]
         }
       }
-      console.log('matrix', matrix);
+      // console.log('matrix', matrix);
       return matrix
     },
     plansSumsByDates() {
@@ -342,7 +342,7 @@ export default {
             return 0
           })
         }).reduce((result, curr) => result?.concat(curr))
-        console.log(categs.children);
+        // console.log(categs.children);
       })
       return categories
     },

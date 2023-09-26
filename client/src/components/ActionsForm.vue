@@ -5,10 +5,12 @@
       <el-form :model="newAction" :rules="actionRules" label-position="top" ref="actionForm">
         <div class="form-items">
           <el-form-item label="Сумма операции" prop="sum">
-            <el-input-number v-model="newAction.sum" :min="1" :step="100" @change="sumPartsAll = []" />
+            <el-input-number v-model="newAction.sum" :min="1" :step="100" @change="sumPartsAll = []" ref="input_sum"
+              @keyup.enter="nextFocus('input_category')" />
           </el-form-item>
           <el-form-item label="Категория операции" prop="category_id">
-            <el-select v-model="newAction.category_id" filterable default-first-option>
+            <el-select v-model="newAction.category_id" filterable default-first-option ref="input_category"
+              @keyup.enter="nextFocus('input_date')">
               <li class="button_add-category">
                 <el-button type="primary" round :icon="iconPlus" @click="openCategoryDialog">
                   Создать новую
@@ -31,11 +33,11 @@
         </div>
         <template v-if="mode === 'full'">
           <h6>Дополнительно</h6>
-          <!-- <span></span> -->
           <div class="form-items">
             <el-form-item label="Дата операции" prop="date">
               <el-date-picker v-model="newAction.date" :disabled-date="(time) => time.getTime() > Date.now()" type="date"
-                placeholder="Выберите дату" format="DD.MM.YYYY" />
+                placeholder="Выберите дату" format="DD.MM.YYYY" ref="input_date"
+                @visible-change="(isVisible) => !isVisible ? nextFocus(isEditMode ? 'button_change' : 'button_add') : undefined" />
             </el-form-item>
             <el-form-item label="Составная сумма" class="multipleSum">
               <template #label>
@@ -44,7 +46,7 @@
                   'Десятичный разделитель - `.` (точка).']" />
               </template>
               <el-input v-model="sumPart" placeholder="Введите сумму по частям" :formatter="replaceSumPartValue"
-                :parser="replaceSumPartValue" @keyup.enter="addSumPart" @blur="addSumPart"></el-input>
+                :parser="replaceSumPartValue" @keyup.enter="addSumPart" @blur="addSumPart" ref="input_sumPart"></el-input>
               <div class="sum_parts">
                 <el-tag v-for="(part, idx) in sumPartsAll" :key="idx" closable @close="deleteSumPart(idx)">
                   {{ `${Math.round(+part * 100) / 100}`.replace(/\./g, ',') }}
@@ -52,8 +54,8 @@
               </div>
             </el-form-item>
             <el-form-item class="comment" label="Комментарий">
-              <el-input v-model="newAction.comment" :rows="2" type="textarea"
-                placeholder="Подробности операции"></el-input>
+              <el-input v-model="newAction.comment" :rows="2" type="textarea" placeholder="Подробности операции"
+                ref="input_comment" @keyup.enter="nextFocus(isEditMode ? 'button_change' : 'button_add')"></el-input>
             </el-form-item>
           </div>
         </template>
@@ -70,11 +72,12 @@
         <el-button v-if="isEditMode" @click="cancelAdding" :icon="iconCancel" round>
           Отменить
         </el-button>
-        <el-button v-if="isEditMode" type="success" @click="processAction('change')" :icon="iconCheck" round>
+        <el-button v-if="isEditMode" type="success" @click="processAction('change')" :icon="iconCheck" round
+          ref="button_change" id="button_change" @keyup.enter="nextFocus('input_sum')">
           Сохранить
         </el-button>
         <el-button v-else :class="{ 'el-button--primary': !isLightTheme }" @click="processAction('add')" :icon="iconCheck"
-          round>
+          round ref="button_add" id="button_add" @keyup.enter="nextFocus('input_sum')">
           Сохранить
         </el-button>
       </div>
@@ -97,7 +100,7 @@ import {
   CloseBold,
 } from '@element-plus/icons-vue'
 import { shallowRef } from 'vue'
-import { cloneByJSON, notifyWrap } from '../services/utils'
+import { cloneByJSON, filterObject, notifyWrap } from '../services/utils'
 import { Actions } from '../services/changings'
 import InfoBalloon from '../components/InfoBalloon.vue'
 import CategoriesForm from './CategoriesForm.vue'
@@ -186,6 +189,10 @@ export default {
           if (mode === 'add') changes = actions.add(this.newAction)
           this.cancelAdding()
           await this.$store.dispatch('saveDataChanges', changes)
+          this.$message({
+            type: "success",
+            message: "Сохранено",
+          })
         } catch (err) {
           notifyWrap(err)
         }
@@ -207,14 +214,23 @@ export default {
       })
     },
     cancelAdding() {
+      const savedValues = filterObject(this.newAction, (k, v) => {
+        return !this.isEditMode && ['date', 'category_id'].includes(k) && v
+      })
       this.isEditMode = false
       this.$emit('call-to-end')
+      console.log(savedValues);
       this.newAction = cloneByJSON(clearAction)
       this.newAction.date = new Date()
       this.sumPart = ''
       this.sumPartsAll = []
+      this.newAction = {
+        ...this.newAction,
+        ...savedValues
+      }
     },
     readFromRouteQuery() {
+      if (!JSON.parse(this.$route.query?.isEdit || 'false')) return
       Object.keys(clearAction).forEach(field => {
         this.newAction[field] = this.$route.query[field]
       })
@@ -239,12 +255,18 @@ export default {
     },
     openCategoryDialog() {
       this.categoryDialog = true
+    },
+    nextFocus(ref) {
+      if (['button_add', 'button_change'].includes(ref) && (
+        !this.newAction.sum || !this.newAction.category_id || !this.newAction.date
+      )) return
+      this.$refs[ref]?.focus?.() || document.getElementById(ref)?.focus?.()
     }
   },
   watch: {
     routeQuery: {
       handler(nv) {
-        console.log(nv);
+        // console.log(nv);
         this.readFromRouteQuery()
       },
       deep: true

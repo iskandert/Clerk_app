@@ -85,6 +85,10 @@ export default {
           let changes = config.setStart(this.newCheck)
           this.cancelChecking()
           await this.$store.dispatch('saveDataChanges', changes)
+          this.$message({
+            type: "success",
+            message: "Сохранено",
+          })
         } catch (err) {
           notifyWrap(err)
         }
