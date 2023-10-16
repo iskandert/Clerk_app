@@ -441,7 +441,17 @@ export class Plans extends Entities {
     let result = []
 
     this.deleteDublicates()
-    this.updatePastPlans()
+    this.updatePlans({ mode: 'past' })
+    this.deleteEmptyPlans()
+
+    result = result.concat(this.getResult())
+
+    return result
+  }
+  recalcCurrentPlans() {
+    let result = []
+
+    this.updatePlans()
     this.deleteEmptyPlans()
 
     result = result.concat(this.getResult())
@@ -484,27 +494,25 @@ export class Plans extends Entities {
 
     return result
   }
-  updatePastPlans() {
+  updatePlans(settings) {
     let result = []
 
-    const pastPlansObj = {}
+    const plansObj = {}
+    const isPastMode = settings?.mode === 'past'
     const now = dayjs()
     this.state[this.field].data.forEach((plan) => {
-      if (!now.isAfter(plan.date, 'month')) return
+      if (isPastMode ? !now.isAfter(plan.date, 'month') : !now.isSame(plan.date, 'month')) return
 
       plan.sum = 0
-      if (!pastPlansObj[plan.date]) pastPlansObj[plan.date] = {}
-      // if (pastPlansObj[plan.date][plan.category_id]) {
-      // console.log('yeah', pastPlansObj[plan.date][plan.category_id])
-      // }
-      pastPlansObj[plan.date][plan.category_id] = plan
+      if (!plansObj[plan.date]) plansObj[plan.date] = {}
+      plansObj[plan.date][plan.category_id] = plan
     })
 
     this.state.actions.data.forEach((action) => {
       const date = dayjs(action.date).format('YYYY-MM')
-      if (!now.isAfter(date, 'month')) return
+      if (isPastMode ? !now.isAfter(date, 'month') : !now.isSame(date, 'month')) return
 
-      let plan = pastPlansObj[date]?.[action.category_id]
+      let plan = plansObj[date]?.[action.category_id]
       if (plan) return (plan.sum += +action.sum)
 
       plan = this._create({
@@ -514,8 +522,8 @@ export class Plans extends Entities {
       })
       this._add(plan)
 
-      if (!pastPlansObj[date]) pastPlansObj[date] = {}
-      pastPlansObj[date][action.category_id] = plan
+      if (!plansObj[date]) plansObj[date] = {}
+      plansObj[date][action.category_id] = plan
     })
 
     result = result.concat(this.getResult())

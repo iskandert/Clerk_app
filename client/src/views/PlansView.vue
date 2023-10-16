@@ -214,6 +214,9 @@
           :icon="iconRemove">
           Удалить{{ isMobileSize ? '' : ' некоторые планы' }}
         </el-button>
+        <el-button @click="handleRecalcMonth" round type="warning" :size="isMobileSize ? 'large' : ''" :icon="iconRecalc">
+          Пересчитать месяц
+        </el-button>
         <el-button @click="openPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''" :icon="iconCPlus">
           Добавить{{ isMobileSize ? '' : ' план' }}
         </el-button>
@@ -252,10 +255,11 @@ import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import PlansForm from '../components/PlansForm.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount, cloneByJSON } from '../services/utils'
-import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled, RefreshLeft } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
 import CategoriesForm from '../components/CategoriesForm.vue'
 import PlansDeletingForm from '../components/PlansDeletingForm.vue'
+import { Plans } from '../services/changings'
 
 export default {
   components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm },
@@ -268,6 +272,7 @@ export default {
       iconMore: shallowRef(MoreFilled),
       iconCPlus: shallowRef(CirclePlusFilled),
       iconRemove: shallowRef(RemoveFilled),
+      iconRecalc: shallowRef(RefreshLeft),
     }
   },
   data() {
@@ -494,6 +499,27 @@ export default {
     },
     openCategoryDialog() {
       this.categoryDialog = true
+    },
+    //
+    async handleRecalcMonth() {
+      try {
+        await this.$confirm('Восстановить прошлое значение планов будет нельзя', `Пересчитать планы на ${this.$dayjs().format('MMMM')}?`, {
+          confirmButtonText: 'Пересчитать',
+          confirmButtonClass: 'el-button--warning',
+        })
+
+        const plans = new Plans()
+        let changes = plans.recalcCurrentPlans()
+
+        await this.$store.dispatch('saveDataChanges', changes)
+        this.$message({
+          type: "success",
+          message: "Сохранено",
+        })
+      } catch (err) {
+        if (err === 'cancel') return
+        notifyWrap(err)
+      }
     }
   },
 }
