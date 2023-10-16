@@ -412,6 +412,31 @@ export class Plans extends Entities {
 
     return result
   }
+  deleteMany(obj) {
+    let result = []
+    if (!obj) return result
+
+    const settings = cloneByJSON(obj)
+
+    if (settings.date) settings.date = dayjs(settings.date).format('YYYY-MM')
+    if (settings.dateLast) settings.dateLast = dayjs(settings.dateLast).format('YYYY-MM')
+
+    this.state[this.field].data
+      .filter((plan) => {
+        let isSameDate
+
+        if (settings.dateLast) isSameDate = plan.date >= settings.date && plan.date <= settings.dateLast
+        else isSameDate = plan.date === settings.date
+
+        if (isSameDate) return settings.categories_ids.includes(plan.category_id)
+        return false
+      })
+      .forEach(({ _id }) => this.delete(_id))
+
+    result = result.concat(this.getResult())
+
+    return result
+  }
   checkPlans() {
     let result = []
 

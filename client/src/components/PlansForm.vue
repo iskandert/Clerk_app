@@ -158,7 +158,7 @@ export default {
           notifyWrap(err)
         }
       }
-      if (mode === 'delete') return this.$confirm('Восстановить операцию будет нельзя', 'Удалить операцию?', {
+      if (mode === 'delete') return this.$confirm('Восстановить план будет нельзя', 'Удалить план?', {
         confirmButtonText: 'Удалить',
         confirmButtonClass: 'el-button--danger',
       }).then(process).catch(err => err)

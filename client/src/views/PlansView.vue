@@ -210,11 +210,23 @@
         </el-table>
       </div>
       <div class="button-container">
+        <el-button @click="openDeletingPlanDialog" round type="danger" :size="isMobileSize ? 'large' : ''"
+          :icon="iconRemove">
+          Удалить{{ isMobileSize ? '' : ' некоторые планы' }}
+        </el-button>
         <el-button @click="openPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''" :icon="iconCPlus">
-          Добавить план
+          Добавить{{ isMobileSize ? '' : ' план' }}
         </el-button>
       </div>
     </el-card>
+
+    <el-dialog width="min(100vw, 500px)" v-model="deletingPlanDialog" :append-to-body="true"
+      :before-close="handleCancelDeletingPlan" :destroy-on-close="true">
+      <template #header>
+        <h4>Удалить планы</h4>
+      </template>
+      <PlansDeletingForm @call-to-end="handleCancelDeletingPlan" class="dialog" />
+    </el-dialog>
 
     <el-dialog width="min(100vw, 500px)" v-model="planDialog" :append-to-body="true" :before-close="handleCancelPlan"
       :destroy-on-close="true">
@@ -240,12 +252,13 @@ import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import PlansForm from '../components/PlansForm.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount, cloneByJSON } from '../services/utils'
-import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
 import CategoriesForm from '../components/CategoriesForm.vue'
+import PlansDeletingForm from '../components/PlansDeletingForm.vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -254,6 +267,7 @@ export default {
       iconFlip: shallowRef(Refresh),
       iconMore: shallowRef(MoreFilled),
       iconCPlus: shallowRef(CirclePlusFilled),
+      iconRemove: shallowRef(RemoveFilled),
     }
   },
   data() {
@@ -264,6 +278,8 @@ export default {
       isShowedSavings: true,
       isShowedDinamic: true,
       isShowedPercentage: true,
+      //
+      deletingPlanDialog: false,
       //
       planDialog: false,
       isEditMode: false,
@@ -441,6 +457,13 @@ export default {
         })
       }
       this.openPlanDialog()
+    },
+    //
+    openDeletingPlanDialog() {
+      this.deletingPlanDialog = true
+    },
+    handleCancelDeletingPlan() {
+      this.deletingPlanDialog = false
     },
     //
     handleCancelCategory() {
@@ -737,7 +760,9 @@ export default {
 
 .button-container {
   display: flex;
-  justify-content: center;
+  justify-content: right;
+  flex-wrap: wrap-reverse;
+  row-gap: 8px;
   margin-top: 12px;
 }
 
@@ -754,10 +779,6 @@ export default {
   .el-table {
     --table-height: calc(100dvh - var(--header-height) - var(--footer-height) - 152px);
     --table-height: calc(100vh - var(--header-height) - var(--footer-height) - 152px);
-  }
-
-  .button-container {
-    justify-content: right;
   }
 }
 </style>
