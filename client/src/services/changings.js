@@ -265,10 +265,10 @@ export class Actions extends Entities {
 
     const plans = new Plans(this.state)
     const oldActionPlan = this.state.plans.data.find(({ date, category_id }) => {
-      return date === oldActionDate && category_id === oldAction?.category_id
+      return dayjs(date).isSame(oldActionDate, 'month') && category_id === oldAction?.category_id
     })
     const newActionPlan = this.state.plans.data.find(({ date, category_id }) => {
-      return date === newActionDate && category_id === newAction?.category_id
+      return dayjs(date).isSame(newActionDate, 'month') && category_id === newAction?.category_id
     })
 
     if (oldActionDate && now.isAfter(oldActionDate, 'month') && oldActionPlan) {
