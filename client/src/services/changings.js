@@ -382,6 +382,29 @@ export class Plans extends Entities {
 
     return result
   }
+  extendMany(obj) {
+    const settings = cloneByJSON(obj)
+    let result = []
+
+    if (!settings.date || !settings.dateLast || !settings.categories_ids?.length) return result
+
+    if (dayjs(settings.date).isBefore(dayjs(), 'month')) return result
+
+    settings.date = dayjs(settings.date).format('YYYY-MM')
+    settings.dateLast = dayjs(settings.dateLast).format('YYYY-MM')
+
+    this.state[this.field].data.forEach((plan) => {
+      if (!settings.categories_ids.includes(plan.category_id) || plan.date !== settings.date) return
+      this.change({
+        ...plan,
+        dateLast: settings.dateLast,
+      })
+    })
+
+    result = result.concat(this.getResult())
+
+    return result
+  }
   change(obj) {
     let result = []
     const planSettings = this._format_settings(obj)

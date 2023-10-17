@@ -215,7 +215,11 @@
           Удалить{{ isMobileSize ? '' : ' некоторые планы' }}
         </el-button>
         <el-button @click="handleRecalcMonth" round type="warning" :size="isMobileSize ? 'large' : ''" :icon="iconRecalc">
-          Пересчитать месяц
+          Пересчитать{{ isMobileSize ? '' : ' месяц' }}
+        </el-button>
+        <el-button @click="openExtendingPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''"
+          :icon="iconExtend">
+          Продлить{{ isMobileSize ? '' : ' планы' }}
         </el-button>
         <el-button @click="openPlanDialog" round type="primary" :size="isMobileSize ? 'large' : ''" :icon="iconCPlus">
           Добавить{{ isMobileSize ? '' : ' план' }}
@@ -229,6 +233,14 @@
         <h4>Удалить планы</h4>
       </template>
       <PlansDeletingForm @call-to-end="handleCancelDeletingPlan" class="dialog" />
+    </el-dialog>
+
+    <el-dialog width="min(100vw, 500px)" v-model="extendingPlanDialog" :append-to-body="true"
+      :before-close="handleCancelExtendingPlan" :destroy-on-close="true">
+      <template #header>
+        <h4>Продлить планы</h4>
+      </template>
+      <PlansExtendingForm @call-to-end="handleCancelExtendingPlan" class="dialog" />
     </el-dialog>
 
     <el-dialog width="min(100vw, 500px)" v-model="planDialog" :append-to-body="true" :before-close="handleCancelPlan"
@@ -255,14 +267,15 @@ import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import PlansForm from '../components/PlansForm.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount, cloneByJSON } from '../services/utils'
-import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled, RefreshLeft } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled, RefreshLeft, DArrowRight } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
 import CategoriesForm from '../components/CategoriesForm.vue'
 import PlansDeletingForm from '../components/PlansDeletingForm.vue'
+import PlansExtendingForm from '../components/PlansExtendingForm.vue'
 import { Plans } from '../services/changings'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm, PlansExtendingForm },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -273,6 +286,7 @@ export default {
       iconCPlus: shallowRef(CirclePlusFilled),
       iconRemove: shallowRef(RemoveFilled),
       iconRecalc: shallowRef(RefreshLeft),
+      iconExtend: shallowRef(DArrowRight),
     }
   },
   data() {
@@ -285,6 +299,8 @@ export default {
       isShowedPercentage: true,
       //
       deletingPlanDialog: false,
+      //
+      extendingPlanDialog: false,
       //
       planDialog: false,
       isEditMode: false,
@@ -469,6 +485,13 @@ export default {
     },
     handleCancelDeletingPlan() {
       this.deletingPlanDialog = false
+    },
+    //
+    openExtendingPlanDialog() {
+      this.extendingPlanDialog = true
+    },
+    handleCancelExtendingPlan() {
+      this.extendingPlanDialog = false
     },
     //
     handleCancelCategory() {
