@@ -39,7 +39,7 @@ class FilesController extends Controller {
       const creatingPromise = this.repository.createAppFile(auth, {
         fileName,
         fileData,
-        randomSuffix: false,
+        // randomSuffix: false,
       })
       creatingPromises.push(creatingPromise)
       createdNames.push(fileName)
@@ -76,7 +76,8 @@ class FilesController extends Controller {
       fileName: req.body.name,
       fileData: req.body.data,
     })
-    console.log('controller updateOne:', resp)
+    console.log('controller updateOne')
+    // console.log('controller updateOne:', resp)
     return this.createResponse(200, resp)
   }
 }

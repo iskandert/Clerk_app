@@ -9,11 +9,12 @@ class Repository {
   writeTempFile = async (data, prefix, random) => {
     const jsonData = JSON.stringify(data)
     // Write JSON data to a file with unique name
-    let sup_file_name = `./temporary/${prefix}.json`
-    if (random) sup_file_name = `./temporary/${prefix}_${uuidv4()}.json`
+    let sup_file_name = `./temporary/${prefix}_${uuidv4()}.json`
+    // let sup_file_name = `./temporary/${prefix}.json`
+    // if (random) sup_file_name = `./temporary/${prefix}_${uuidv4()}.json`
     try {
       await fs.promises.writeFile(sup_file_name, jsonData)
-      console.log(sup_file_name)
+      // console.log(sup_file_name)
       return sup_file_name
     } catch (err) {
       console.log(err)

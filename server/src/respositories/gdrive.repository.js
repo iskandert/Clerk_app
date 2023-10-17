@@ -13,11 +13,11 @@ class GDriveRepository extends Repository {
 
   getAppMeta = async (accessToken) => {
     console.log('repo getAppMeta')
-    console.log(accessToken)
-    console.log(oauthOptions)
+    // console.log(accessToken)
+    // console.log(oauthOptions)
     const oauth2Client = new OAuth2(...oauthOptions)
     oauth2Client.setCredentials({ access_token: accessToken })
-    console.log(oauth2Client)
+    // console.log(oauth2Client)
     try {
       const response = await drive.files.list({
         auth: oauth2Client,
@@ -25,7 +25,7 @@ class GDriveRepository extends Repository {
         fields: 'files(id, name)',
         pageSize: 100,
       })
-      console.log(response.data)
+      // console.log(response.data)
       return response.data.files
     } catch (err) {
       console.error(err)
@@ -43,7 +43,7 @@ class GDriveRepository extends Repository {
         // spaces: 'appDataFolder',
         fileId,
       })
-      console.log('Deleted:', file)
+      // console.log('Deleted:', file)
       return { message: 'file deleted' }
     } catch (err) {
       console.log('ERROR')
@@ -62,7 +62,7 @@ class GDriveRepository extends Repository {
         fileId,
         alt: 'media',
       })
-      console.log('File:', file)
+      // console.log('File:', file)
       return file.data
     } catch (err) {
       console.log(err)
@@ -85,7 +85,7 @@ class GDriveRepository extends Repository {
         media: fileOpts,
         fields: 'id',
       })
-      console.log('Created:', file)
+      // console.log('Created:', file)
       return file.data.id
     } catch (err) {
       console.log(err)
@@ -106,7 +106,7 @@ class GDriveRepository extends Repository {
         fileId,
         media: fileOpts,
       })
-      console.log('Updated:', resp)
+      // console.log('Updated:', resp)
       return resp.data
     } catch (err) {
       console.log(err)

@@ -18,7 +18,7 @@ class Controller {
 
   createResponse = (status, data, options) => {
     console.log('create resp')
-    console.log('data:', data)
+    // console.log('data:', data)
     return { status, data, options }
   }
 }

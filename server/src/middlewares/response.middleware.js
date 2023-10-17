@@ -4,7 +4,7 @@ const responseMiddleware = (req, res, next) => {
   console.log('in res middleware')
   try {
     const { status, data, options } = req.response
-    console.log(status, data, options)
+    // console.log(status, data, options)
 
     const response = {
       status: status || 200,
