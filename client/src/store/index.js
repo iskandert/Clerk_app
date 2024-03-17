@@ -2,8 +2,10 @@ import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import api from '../services/api'
 import axios from 'axios'
-import { cloneByJSON, getInitWidth, setValueAfterDelay } from '../services/utils'
+import { cloneByJSON, dayjs, getInitWidth, setValueAfterDelay } from '../services/utils'
 import { layoutSizing } from '../config'
+import { watch } from 'vue'
+import { initEntities } from '../initial.config'
 
 const getDefaultState = () => {
   return {
@@ -29,11 +31,13 @@ const getDefaultState = () => {
   }
 }
 
-export default createStore({
+console.log('store created')
+const store = createStore({
   // plugins: [createPersistedState()],
   state: getDefaultState(),
   getters: {
     isLoggedIn: (state) => {
+      // return true
       return state.token
     },
     getUser: (state) => {
@@ -82,6 +86,9 @@ export default createStore({
       )
       // state.expires_in = 65 // test
     },
+    SET_TOKEN_EVER: (state) => {
+      state.token = 'token'
+    },
     SET_USER: (state, user) => {
       state.user = user
     },
@@ -108,8 +115,9 @@ export default createStore({
       state.fullScreenMode = value
     },
     RESET: (state) => {
-      clearTimeout(state.expiringTimeout)
+      // clearTimeout(state.expiringTimeout)
       Object.assign(state, getDefaultState())
+      console.log('store reseted')
     },
   },
   actions: {
@@ -127,6 +135,13 @@ export default createStore({
       axios.defaults.headers.common['Authorization'] = ''
       window.google?.accounts?.oauth2?.revoke?.(getters.isLoggedIn)
       window.gapi?.client?.setToken?.('')
+    },
+    loginLocal: ({commit, state}) => {
+      commit('SET_TOKEN_EVER')
+      console.log(state.token);
+    },
+    logoutLocal: ({commit}) => {
+      commit('RESET')
     },
     setTokenExpiring: ({ commit, getters }) => {
       if (!getters.isLoggedIn) return
@@ -148,8 +163,8 @@ export default createStore({
         console.log('dispatch')
         const res = await api.getData(payload)
         console.log(res)
-        if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
-        else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
+        // if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
+        // else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
       } catch (err) {
         console.log(err)
       }
@@ -160,6 +175,15 @@ export default createStore({
         if (payload.col === 'data') commit('SET_ALL_DATA', { data: res.data })
         else commit('SET_SUP_DATA', { f: payload.col, data: res.data })
       } catch (e) {
+        throw e
+      }
+    },
+    deleteData({ commit, state }) {
+      try {
+        commit('SET_ALL_DATA', { data: initEntities()});
+        console.log(state.data);
+      } catch (e) {
+        console.log(e);
         throw e
       }
     },
@@ -184,7 +208,7 @@ export default createStore({
         const res = await Promise.all(
           options.map((opts) => {
             commit('SET_COL_DATA', { f: `${opts.col}/${opts.field}`, data: opts.payload.data })
-            return api.putData(opts)
+            // return api.putData(opts)
           })
         )
         // const res = await api.putData(options)
@@ -197,3 +221,7 @@ export default createStore({
     },
   },
 })
+
+watch(() => store.state.token, nv => console.log('token changed:',nv))
+
+export default store

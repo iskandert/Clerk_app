@@ -1,0 +1,20 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "html.format.wrapAttributes": "force-expand-multiline",
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "prettier.printWidth": 100,
+  "prettier.singleAttributePerLine": true,
+  "prettier.vueIndentScriptAndStyle": false,
+  "prettier.arrowParens": "avoid",
+  "prettier.semi": true
+}
+
+// "prettier": {
+//   "printWidth": 100,
+//   "singleAttributePerLine": true,
+//   "vueIndentScriptAndStyle": false,
+//   "arrowParens": "avoid",
+//   "semi": true
+// }

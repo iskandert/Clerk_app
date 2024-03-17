@@ -3,21 +3,20 @@
 </template>
 
 <script>
-import { RouterView } from 'vue-router'
+import { RouterView } from 'vue-router';
 import store from './store';
 import { watchTokenExpiring } from './composables/watchers';
 
 export default {
   setup() {
-
-    const localVuex = JSON.parse(window.localStorage.getItem('vuex'))
-    if (localVuex?.token) {
-      store.dispatch('login', localVuex)
-    }
-    store.dispatch('setTokenExpiring')
-    watchTokenExpiring()
+    // const localVuex = JSON.parse(window.localStorage.getItem('vuex'))
+    // if (localVuex?.token) {
+    //   store.dispatch('login', localVuex)
+    // }
+    // store.dispatch('setTokenExpiring')
+    // watchTokenExpiring()
   },
-}
+};
 </script>
 
 <style>
@@ -99,12 +98,12 @@ body .el-message-box__title {
   line-height: 1.3;
 }
 
-body .el-message-box__message>p>div {
+body .el-message-box__message > p > div {
   line-height: 1.3;
   margin-bottom: 8px;
 }
 
-.el-card>.el-card__body {
+.el-card > .el-card__body {
   padding: 12px;
 }
 
@@ -146,12 +145,12 @@ h5 {
   color: var(--el-color-gray-light-9);
 }
 
-:is(h1, h2, h3, h4, h5, h6)>.el-link {
+:is(h1, h2, h3, h4, h5, h6) > .el-link {
   font-weight: inherit;
   font-size: inherit;
 }
 
-:is(h1, h2, h3, h4, h5, h6)>.el-link:not(:hover) {
+:is(h1, h2, h3, h4, h5, h6) > .el-link:not(:hover) {
   color: inherit;
 }
 
@@ -163,13 +162,14 @@ p {
   margin: 0;
 }
 
-:not(.el-button, .menu-item-text, .el-message-box__title, .el-switch, .el-switch__label)>span:not(.el-link__inner, .trigger),
+:not(.el-button, .menu-item-text, .el-message-box__title, .el-switch, .el-switch__label)
+  > span:not(.el-link__inner, .trigger),
 p {
   font-size: 14px;
   color: var(--el-text-color-regular);
 }
 
-.el-card:has(:is(h1, h2, h3, h4, h5, h6)>.el-link:hover),
+.el-card:has(:is(h1, h2, h3, h4, h5, h6) > .el-link:hover),
 .el-card.primary-shadow.is-always-shadow,
 .primary-shadow {
   box-shadow: var(--el-box-shadow-primary);
@@ -179,8 +179,8 @@ div.el-form-item {
   margin-bottom: 16px;
 }
 
-.el-form-item__content>div,
-.el-form-item__content>div.el-input {
+.el-form-item__content > div,
+.el-form-item__content > div.el-input {
   width: 100%;
 }
 

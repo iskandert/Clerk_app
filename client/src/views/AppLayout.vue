@@ -1,14 +1,23 @@
 <template>
   <div class="app-container">
     <header>
-      <div class="section-container" :class="{ full: false }">
+      <div
+        class="section-container"
+        :class="{ full: false }"
+      >
         <AppHeader />
       </div>
     </header>
     <main>
-      <div class="section-container" :class="{ full: isFullMode }">
+      <div
+        class="section-container"
+        :class="{ full: isFullMode }"
+      >
         <router-view v-slot="{ Component, route }">
-          <transition name="fade" mode="out-in">
+          <transition
+            name="fade"
+            mode="out-in"
+          >
             <div :key="route.name">
               <component :is="Component"></component>
             </div>
@@ -17,7 +26,10 @@
       </div>
     </main>
     <footer>
-      <div class="section-container" :class="{ full: false }">
+      <div
+        class="section-container"
+        :class="{ full: false }"
+      >
         <AppFooter />
       </div>
     </footer>
@@ -25,65 +37,65 @@
 </template>
 
 <script>
-import AppHeader from '../components/AppHeader.vue'
-import AppFooter from '../components/AppFooter.vue'
-import { getInitWidth, notifyWrap } from '../services/utils'
-import { layoutSizing } from '../config'
-import { Plans } from '../services/changings'
-import { watchDataChanging } from '../composables/watchers'
+import AppHeader from '../components/AppHeader.vue';
+import AppFooter from '../components/AppFooter.vue';
+import { getInitWidth, notifyWrap } from '../services/utils';
+import { layoutSizing } from '../config';
+import { Plans } from '../services/changings';
+import { watchDataChanging } from '../composables/watchers';
 
 export default {
   components: {
     AppHeader,
-    AppFooter
+    AppFooter,
   },
   setup() {
-    watchDataChanging()
+    // watchDataChanging();
   },
   data() {
-    return {}
+    return {};
   },
   methods: {
     async getAllData() {
       try {
-        await this.$store.dispatch('getDataList', { col: 'data' })
-        const plans = new Plans()
-        const changes = plans.checkPlans()
-        await this.$store.dispatch('saveDataChanges', changes)
+        await this.$store.dispatch('getDataList', { col: 'data' });
+        const plans = new Plans();
+        const changes = plans.checkPlans();
+        await this.$store.dispatch('saveDataChanges', changes);
         this.$message({
-          type: "success",
-          message: "Сохранено",
-        })
+          type: 'success',
+          message: 'Сохранено',
+        });
       } catch (err) {
-        notifyWrap(err)
+        notifyWrap(err);
       }
     },
     onResize() {
-      const size = getInitWidth(layoutSizing)
+      const size = getInitWidth(layoutSizing);
       this.$store.commit('SET_SUP_DATA', {
         f: 'isMobileSize',
-        data: size === 'xs'
-      })
+        data: size === 'xs',
+      });
       this.$store.commit('SET_SUP_DATA', {
         f: 'viewportSize',
-        data: size
-      })
+        data: size,
+      });
     },
   },
   computed: {
     isFullMode() {
-      return this.$store.getters.getScreenMode
-    }
+      return this.$store.getters.getScreenMode;
+    },
   },
   mounted() {
-    this.getAllData()
-    this.onResize()
-    window.addEventListener('resize', this.onResize)
+    // this.getAllData();
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.onResize)
-  }
-}
+    window.removeEventListener('resize', this.onResize);
+  },
+};
 </script>
 <style>
 :root {
@@ -139,18 +151,18 @@ footer {
   flex-direction: column;
 }
 
-header>.section-container {
+header > .section-container {
   min-height: var(--header-height);
 }
 
-main>.section-container {
+main > .section-container {
   min-height: 100vh;
   min-height: 100dvh;
   padding-top: calc(var(--header-height) + 16px);
   padding-bottom: calc(var(--footer-height-mobile) + 16px);
 }
 
-footer>.section-container {
+footer > .section-container {
   min-height: calc(var(--footer-height-mobile) * 2);
 }
 
@@ -174,11 +186,11 @@ footer>.section-container {
     border: none;
   }
 
-  footer>.section-container {
+  footer > .section-container {
     min-height: var(--footer-height);
   }
 
-  main>.section-container {
+  main > .section-container {
     min-height: calc(100vh - var(--footer-height));
     min-height: calc(100dvh - var(--footer-height));
     padding-bottom: 16px;
@@ -202,10 +214,8 @@ footer>.section-container {
 }
 
 @media (min-width: 1400px) {
-
   .section-container {
     max-width: 1200px;
   }
-
 }
 </style>
