@@ -8,7 +8,8 @@
   "prettier.singleAttributePerLine": true,
   "prettier.vueIndentScriptAndStyle": false,
   "prettier.arrowParens": "avoid",
-  "prettier.semi": true
+  "prettier.semi": true,
+  "prettier.tabWidth": 4,
 }
 
 // "prettier": {

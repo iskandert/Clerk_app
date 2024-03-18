@@ -22,10 +22,14 @@
               plain>
               % Процентаж
             </el-button>
-            <el-button @click="isReversedLayout = !isReversedLayout" :type="isReversedLayout ? 'primary' : ''" round plain
+            <el-button @click="isShowedCorrelation = !isShowedCorrelation" :type="isShowedCorrelation ? 'primary' : ''" round
+              plain>
+              <i style="margin:0 6px 3px 0">ρ</i>Корреляция
+            </el-button>
+            <!-- <el-button @click="isReversedLayout = !isReversedLayout" :type="isReversedLayout ? 'primary' : ''" round plain
               :icon="iconFlip">
               Перевернуть
-            </el-button>
+            </el-button> -->
           </template>
 
           <el-popover v-else :width="200" trigger="click">
@@ -38,7 +42,8 @@
               <el-checkbox v-model="isShowedSavings">Накопления</el-checkbox>
               <el-checkbox v-model="isShowedDinamic">Изменения</el-checkbox>
               <el-checkbox v-model="isShowedPercentage">Процентаж</el-checkbox>
-              <el-checkbox v-model="isReversedLayout">Перевернуть</el-checkbox>
+              <el-checkbox v-model="isShowedCorrelation">Корреляция</el-checkbox>
+              <!-- <el-checkbox v-model="isReversedLayout">Перевернуть</el-checkbox> -->
             </div>
           </el-popover>
         </div>
@@ -93,6 +98,26 @@
                 :status="category.status" />
             </template>
           </el-table-column>
+          <el-table-column v-if="isShowedCorrelation" width="45'" fixed>
+            <template #header>
+              <span>
+                <el-icon :size="20">
+                  <Filter/>
+                </el-icon>
+                <i style="font-size:16px;margin-left:-4px">ρ</i>
+              </span>
+            </template>
+            <template #default="{ row: category }">
+              <div class="correlation-check" v-if="!category.children">
+                <el-icon v-if="categoriesForCorrelation.includes(category._id)" color="var(--el-color-success)" :size="20">
+                  <CircleCheckFilled />
+                </el-icon>
+                <el-icon v-else color="var(--el-color-danger)" :size="20">
+                  <CircleCloseFilled />
+                </el-icon>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column v-for="(date, index) in datesList" :key="index" width="120">
             <template #header>
               <div class="table-title dates" :class="{ yearStart: isYearStart(date) }">
@@ -111,6 +136,12 @@
                   <PlansBalance v-if="isShowedSavings" :sum="balancesByDates[datesRange?.at(-1)]?.savings" :dinamic="0"
                     type="savings" :is-show-dinamic="isShowedDinamic" style="margin:4px 0 4px" />
                 </template>
+                <PlansCorrelation 
+                  v-if="isShowedCorrelation && correlationsByDates[date]"
+                  :factor="correlationsByDates[date].k" 
+                  :positive="correlationsByDates[date].isPositive"
+                  :negative="correlationsByDates[date].isNegative"
+                />
               </div>
             </template>
             <template #default="{ row: category }">
@@ -267,15 +298,17 @@ import PlansBalance from '../components/PlansBalance.vue'
 import PlansItem from '../components/PlansItem.vue'
 import PlansForm from '../components/PlansForm.vue'
 import { mapObject, getEntityField, getObjectFromArray, getFormattedCount, cloneByJSON } from '../services/utils'
-import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled, RefreshLeft, DArrowRight } from '@element-plus/icons-vue'
+import { Lock, Unlock, Plus, CirclePlusFilled, Minus, Coin, Refresh, Sort, MoreFilled, CopyDocument, RemoveFilled, RefreshLeft, DArrowRight, DataAnalysis, Filter, CircleCheckFilled, CircleCloseFilled } from '@element-plus/icons-vue'
 import PlansPercent from '../components/PlansPercent.vue'
 import CategoriesForm from '../components/CategoriesForm.vue'
 import PlansDeletingForm from '../components/PlansDeletingForm.vue'
 import PlansExtendingForm from '../components/PlansExtendingForm.vue'
 import { Plans } from '../services/changings'
+import { getIdsInNormalDistribution, getPearsonCorrelation, getStandardDeviation } from '../services/analize'
+import PlansCorrelation from '../components/PlansCorrelation.vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm, PlansExtendingForm },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm, PlansExtendingForm, Filter, CircleCheckFilled, CircleCloseFilled, PlansCorrelation },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -287,6 +320,7 @@ export default {
       iconRemove: shallowRef(RemoveFilled),
       iconRecalc: shallowRef(RefreshLeft),
       iconExtend: shallowRef(DArrowRight),
+      iconDataAnalysis: shallowRef(DataAnalysis),
     }
   },
   data() {
@@ -297,6 +331,7 @@ export default {
       isShowedSavings: true,
       isShowedDinamic: true,
       isShowedPercentage: true,
+      isShowedCorrelation: true,
       //
       deletingPlanDialog: false,
       //
@@ -353,6 +388,18 @@ export default {
     categoriesObj() {
       return getObjectFromArray(this.categoriesStored)
     },
+    categoriesDeviations() {
+      const stdDevs = {};
+      for (const category_id in this.plansByCategoriesFlatten) {
+        const plansSums = this.plansByCategoriesFlatten[category_id].map(({sum}) => sum);
+        stdDevs[category_id] = getStandardDeviation(plansSums);
+      }
+      return stdDevs;
+    },
+    categoriesForCorrelation() {
+      const data = Object.entries(this.categoriesDeviations).map(([_id, stdDev]) => ({_id, value: stdDev}));
+      return getIdsInNormalDistribution(data);
+    },
     categoriesList() {
       let categories = [
         {
@@ -398,15 +445,36 @@ export default {
       }
       return dates
     },
-    plansByCategories() {
+    correlationsByDates() {
+      const correlations = {};
+
+      this.datesRange.forEach((date, idx, dates) => {
+        const correlationDataCurr = [];
+        const correlationDataPrev = [];
+        if (idx) {
+          this.categoriesForCorrelation.forEach(category_id => {
+            correlationDataCurr.push(this.plansMatrix[date][category_id]?.sum || 0);
+            correlationDataPrev.push(this.plansMatrix[dates[idx - 1]][category_id]?.sum || 0)
+          });
+
+          correlations[date] = getPearsonCorrelation(correlationDataCurr, correlationDataPrev)
+        }
+      })
+
+      return correlations;
+    },
+    plansByCategoriesFlatten() {
       let plans = Object.fromEntries(this.categoriesStored.map(({ _id }) => [_id, []]))
       this.plansStored.forEach(plan => {
         plans[plan.category_id].push(cloneByJSON(plan))
       })
+      return plans;
+    },
+    plansByCategories() {
       return this.categoriesList.map(categsGroups => ({
         ...categsGroups,
         children: categsGroups.children.map(categ => {
-          categ.plans = mapObject(getObjectFromArray(plans[categ._id], 'date'), (k, v) => {
+          categ.plans = mapObject(getObjectFromArray(this.plansByCategoriesFlatten[categ._id], 'date'), (k, v) => {
             return [this.$dayjs(k).format('YYYY-MM'), v]
           }, true)
           return categ
@@ -813,6 +881,12 @@ export default {
   flex-wrap: wrap-reverse;
   row-gap: 8px;
   margin-top: 12px;
+}
+.correlation-check {
+  display:flex;
+  height:100%;
+  justify-content:center;
+  align-items:center;
 }
 
 @media (min-width: 768px) {
