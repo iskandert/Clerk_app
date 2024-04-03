@@ -85,11 +85,70 @@ const getPearsonCorrelation = (dataX, dataY, threshold = 0.05) => {
     const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
     const k = numerator / denominator;
 
-    return { 
-      k: k.toFixed(2), 
-      isPositive: k >= threshold,
-      isNegative: k <= -threshold,
+    return {
+        k: k.toFixed(2),
+        isPositive: k >= threshold,
+        isNegative: k <= -threshold,
     };
 };
 
-export { getStandardDeviation, getIdsInNormalDistribution, getPearsonCorrelation };
+function getSmirnovStatistic(matrix) {
+    const rows = Object.keys(matrix);
+    const cols = Object.keys(matrix[Object.keys(matrix)[0]]);
+    // const numRows = matrix.length; // Количество строк в матрице
+    // const numCols = matrix[0].length; // Количество столбцов (выборок) в матрице
+    let n = 0; // Общее количество наблюдений
+    let gammaN = 0; // Статистика Колмогорова-Смирнова
+
+    // const nu_idot = new Array(numRows).fill(0);
+    // const nu_dotj = new Array(numCols).fill(0);
+    const nu_idot = Object.fromEntries(rows.map(row => [row, 0]));
+    const nu_dotj = Object.fromEntries(cols.map(col => [col, 0]));
+    // const deviations = nu_idot.map(() => [...nu_dotj]);
+    const deviations = Object.fromEntries(
+        rows.map(row => [row, Object.fromEntries(cols.map(col => [col, undefined]))])
+    );
+
+    // Заполнение nu_dotj и nu_idot и подсчет n
+    // for (let i = 0; i < numRows; i++) {
+    //     for (let j = 0; j < numCols; j++) {
+
+    // console.log(matrix);
+    // console.log(rows);
+    // console.log(cols);
+    for (const i of rows) {
+        for (const j of cols) {
+            // console.log(matrix, i, j, matrix[i], matrix[i][j]);
+            nu_idot[i] += matrix[i][j];
+            nu_dotj[j] += matrix[i][j];
+            n += matrix[i][j];
+        }
+    }
+
+    // Вычисление статистики Колмогорова-Смирнова
+    // for (let i = 0; i < numRows; i++) {
+    //     for (let j = 0; j < numCols; j++) {
+    for (const i of rows) {
+        for (const j of cols) {
+            const nu_ij = matrix[i][j];
+            const nu_teoretical = (nu_idot[i] * nu_dotj[j]) / n;
+            const term1 = nu_ij - nu_teoretical;
+            const term2 = nu_idot[i] * nu_dotj[j];
+
+            gammaN += (term1 * term1) / term2;
+            deviations[i][j] = nu_ij / nu_teoretical;
+        }
+    }
+
+    gammaN = n * gammaN - 1;
+
+    console.log(deviations);
+    return { gammaN, deviations };
+}
+
+export {
+    getStandardDeviation,
+    getIdsInNormalDistribution,
+    getPearsonCorrelation,
+    getSmirnovStatistic,
+};

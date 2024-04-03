@@ -10,7 +10,7 @@
               :icon="iconLock">
               Баланс
             </el-button>
-            <el-button @click="isShowedSavings = !isShowedSavings" :type="isShowedSavings ? 'primary' : ''" round plain
+            <!-- <el-button @click="isShowedSavings = !isShowedSavings" :type="isShowedSavings ? 'primary' : ''" round plain
               :icon="iconCoin">
               Накопления
             </el-button>
@@ -21,7 +21,7 @@
             <el-button @click="isShowedPercentage = !isShowedPercentage" :type="isShowedPercentage ? 'primary' : ''" round
               plain>
               % Процентаж
-            </el-button>
+            </el-button> -->
             <el-button @click="isShowedCorrelation = !isShowedCorrelation" :type="isShowedCorrelation ? 'primary' : ''" round
               plain>
               <i style="margin:0 6px 3px 0">ρ</i>Корреляция
@@ -39,11 +39,12 @@
             <div class="checkbox-bar">
               <h5>Настройки отображения</h5>
               <el-checkbox v-model="isShowedBalance">Баланс</el-checkbox>
-              <el-checkbox v-model="isShowedSavings">Накопления</el-checkbox>
+              <!-- <el-checkbox v-model="isShowedSavings">Накопления</el-checkbox>
               <el-checkbox v-model="isShowedDinamic">Изменения</el-checkbox>
-              <el-checkbox v-model="isShowedPercentage">Процентаж</el-checkbox>
+              <el-checkbox v-model="isShowedPercentage">Процентаж</el-checkbox> -->
               <el-checkbox v-model="isShowedCorrelation">Корреляция</el-checkbox>
               <!-- <el-checkbox v-model="isReversedLayout">Перевернуть</el-checkbox> -->
+              <el-checkbox v-model="isShowedS">Корреляция</el-checkbox>
             </div>
           </el-popover>
         </div>
@@ -58,6 +59,9 @@
               <div class="desktop-only">
                 <div class="table-title tips">
                   <span class="span-wrap-keepall">{{ monthProgress }}% месяца</span>
+                </div>
+                <div class="table-title tips">
+                  <span class="span-wrap-keepall">{{ plansSmirnovStatistic.gammaN }}</span>
                 </div>
               </div>
             </template>
@@ -87,7 +91,7 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column v-if="isShowedPercentage" :width="isMobileSize ? '90' : '130'" fixed>
+          <el-table-column v-if="isShowedBalance" :width="isMobileSize ? '90' : '130'" fixed>
             <template #header>
               <span class="span-wrap-keepall">Выполнение планов</span>
             </template>
@@ -125,16 +129,16 @@
                 <span class="mobile-only">{{ $dayjs(date).format('MM.YYYY') }}</span>
                 <template v-if="!(datesRange?.at(-1) < date)">
                   <PlansBalance v-if="isShowedBalance" :sum="balancesByDates[date]?.balance"
-                    :dinamic="balancesByDates[date]?.balanceDiff" type="default" :is-show-dinamic="isShowedDinamic" />
-                  <PlansBalance v-if="isShowedSavings" :sum="balancesByDates[date]?.savings"
-                    :dinamic="balancesByDates[date]?.savingsDiff" type="savings" :is-show-dinamic="isShowedDinamic"
+                    :dinamic="balancesByDates[date]?.balanceDiff" type="default" :is-show-dinamic="isShowedBalance" />
+                  <PlansBalance v-if="isShowedBalance" :sum="balancesByDates[date]?.savings"
+                    :dinamic="balancesByDates[date]?.savingsDiff" type="savings" :is-show-dinamic="isShowedBalance"
                     style="margin:4px 0 4px" />
                 </template>
                 <template v-else>
                   <PlansBalance v-if="isShowedBalance" :sum="balancesByDates[datesRange?.at(-1)]?.balance" :dinamic="0"
-                    type="default" :is-show-dinamic="isShowedDinamic" />
-                  <PlansBalance v-if="isShowedSavings" :sum="balancesByDates[datesRange?.at(-1)]?.savings" :dinamic="0"
-                    type="savings" :is-show-dinamic="isShowedDinamic" style="margin:4px 0 4px" />
+                    type="default" :is-show-dinamic="isShowedBalance" />
+                  <PlansBalance v-if="isShowedBalance" :sum="balancesByDates[datesRange?.at(-1)]?.savings" :dinamic="0"
+                    type="savings" :is-show-dinamic="isShowedBalance" style="margin:4px 0 4px" />
                 </template>
                 <PlansCorrelation 
                   v-if="isShowedCorrelation && correlationsByDates[date]"
@@ -149,7 +153,8 @@
                 <div class="plan-item" :class="{ yearStart: isYearStart(date) }">
                   <PlansItem
                     @call-to-edit="callEditPlan(plansMatrix?.[date]?.[category._id] || { date, category_id: category._id })"
-                    :sum="plansMatrix?.[date]?.[category._id]?.sum" :status="category.status" :date="date" />
+                    :sum="plansMatrix?.[date]?.[category._id]?.sum" :status="category.status" :date="date" 
+                    :deviation="plansSmirnovStatistic.deviations?.[date]?.[category._id]" />
                 </div>
               </template>
               <div class="plans-sum" :class="{ yearStart: isYearStart(date) }" v-else>
@@ -168,14 +173,12 @@
           </template>
         </el-table>
 
-        <el-table class="table-reversed" v-else :data="datesList" border ref="plansTable2"
+        <!-- <el-table class="table-reversed" v-else :data="datesList" border ref="plansTable2"
           max-height="var(--table-height)">
           <el-table-column :width="isMobileSize ? 80 : 120" fixed class="dates-column">
             <template #header>
               <div class="desktop-only">
                 <div class="table-title tips" :class="{ gaped: isReversedLayout }">
-                  <!-- <div>Категории</div>
-                    <div>Месяца</div> -->
                   <span class="span-wrap-keepall">{{ monthProgress }}% месяца</span>
                 </div>
               </div>
@@ -238,9 +241,15 @@
               </template>
             </el-table-column>
           </el-table-column>
-        </el-table>
+        </el-table> -->
       </div>
       <div class="button-container">
+        <el-badge :is-dot="hasStatisticSettings">
+          <el-button @click="openStatisticDialog" round type="success" :size="isMobileSize ? 'large' : ''"
+            :icon="iconDataAnalysis">
+            Статистика
+          </el-button>
+        </el-badge>
         <el-button @click="openDeletingPlanDialog" round type="danger" :size="isMobileSize ? 'large' : ''"
           :icon="iconRemove">
           Удалить{{ isMobileSize ? '' : ' некоторые планы' }}
@@ -289,6 +298,19 @@
       </template>
       <CategoriesForm @call-to-end="handleCancelCategory" class="dialog" />
     </el-dialog>
+
+    <el-dialog width="min(100vw, 500px)" v-model="statisticDialog" :append-to-body="true"
+      :before-close="handleCancelStatistic" :destroy-on-close="true">
+      <template #header>
+        <h4>Настроить статистику</h4>
+      </template>
+      <StatisticForm 
+        @call-to-end="handleCancelStatistic"
+        :categories_ids="filteredCategoryIds"
+        :dates="filteredDates"
+        class="dialog" 
+      />
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -304,11 +326,12 @@ import CategoriesForm from '../components/CategoriesForm.vue'
 import PlansDeletingForm from '../components/PlansDeletingForm.vue'
 import PlansExtendingForm from '../components/PlansExtendingForm.vue'
 import { Plans } from '../services/changings'
-import { getIdsInNormalDistribution, getPearsonCorrelation, getStandardDeviation } from '../services/analize'
+import { getIdsInNormalDistribution, getPearsonCorrelation, getStandardDeviation, getSmirnovStatistic } from '../services/analize'
 import PlansCorrelation from '../components/PlansCorrelation.vue'
+import StatisticForm from '../components/StatisticForm.vue'
 
 export default {
-  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm, PlansExtendingForm, Filter, CircleCheckFilled, CircleCloseFilled, PlansCorrelation },
+  components: { ActionsBar, PlansItem, Lock, Unlock, Plus, Minus, PlansBalance, PlansPercent, PlansForm, CategoriesForm, CopyDocument, PlansDeletingForm, PlansExtendingForm, Filter, CircleCheckFilled, CircleCloseFilled, PlansCorrelation, StatisticForm },
   setup() {
     return {
       iconLock: shallowRef(Lock),
@@ -328,10 +351,10 @@ export default {
       // table settings
       isReversedLayout: false,
       isShowedBalance: true,
-      isShowedSavings: true,
-      isShowedDinamic: true,
-      isShowedPercentage: true,
-      isShowedCorrelation: true,
+      // isShowedSavings: true,
+      // isShowedDinamic: true,
+      // isShowedPercentage: true,
+      isShowedCorrelation: false,
       //
       deletingPlanDialog: false,
       //
@@ -343,10 +366,17 @@ export default {
       categoryDialog: false,
       isEditCategory: false,
       //
+      filteredCategoryIds: [],
+      filteredDates: [],
+      statisticDialog: false,
+      isShowFilteredOnly: false,
       getFormattedCount
     }
   },
   computed: {
+    hasStatisticSettings() {
+      return this.filteredCategoryIds.length && this.filteredDates.length
+    },
     categoriesStored() {
       return this.$store.getters.getData('categories') || []
     },
@@ -417,7 +447,9 @@ export default {
       ]
       categories.forEach(categs => {
         categs.children = ['default', 'savings'].map(categType => {
-          return this.categoriesCalc[categs.status]?.[categType].map(id => {
+          return this.categoriesCalc[categs.status]?.[categType].filter(id => {
+            return this.isShowFilteredOnly ? this.filteredCategoryIds.includes(id) : true;
+          }).map(id => {
             return cloneByJSON(this.categoriesStored[this.categoriesIndexes[id]])
           }).sort((a, b) => {
             const [nameA, nameB] = [a.name, b.name]
@@ -443,7 +475,9 @@ export default {
       for (let monthsCount = 1; monthsCount <= 12; monthsCount++) {
         dates.push(this.$dayjs(lastDate).add(monthsCount, 'month').format('YYYY-MM'))
       }
-      return dates
+      return dates.filter(date => {
+        return this.isShowFilteredOnly ? this.filteredDates.includes(date) : true;
+      })
     },
     correlationsByDates() {
       const correlations = {};
@@ -503,6 +537,44 @@ export default {
     },
     plansByDatesObj() {
       return getObjectFromArray(this.plansByDates, 'date')
+    },
+    plansSmirnovStatistic() {
+      const matrix = {};
+
+      if (this.filteredDates.length < 2 || this.filteredCategoryIds.length < 2) {
+        return {};
+      }
+      for (const date of this.filteredDates) {
+        // if (!this.filteredDates.includes(date)) continue;
+        if (!matrix[date]) {
+          matrix[date] = {};
+        }
+      
+        for (const category_id of this.filteredCategoryIds) {
+          // if (!this.filteredCategoryIds.includes(category_id)) continue;
+          if (matrix[date][category_id] === undefined) {
+            matrix[date][category_id] = this.plansMatrix[date][category_id]?.sum || 0;
+          }
+        }
+      }
+
+      for (const date in this.datesRange) {
+        if (!Object.values(matrix[date] || {}).reduce((sum, curr) => sum + curr, 0)) {
+          delete matrix[date];
+        }
+      }
+
+      for (const category_id in matrix[Object.keys(matrix)[0]]) {
+        if (!Object.values(matrix).reduce((sum, curr) => sum + curr[category_id], 0)) {
+          Object.values(matrix).forEach(statisticAtDate => delete statisticAtDate[category_id]);
+        }
+      }
+
+      console.log(matrix);
+      if (Object.keys(matrix).length < 2 || Object.keys(matrix[Object.keys(matrix)[0]]).length < 2) {
+        return {}
+      }
+      return getSmirnovStatistic(matrix);
     },
     isMobileSize() {
       return this.$store.getters['getWindowSizeState']
@@ -611,7 +683,21 @@ export default {
         if (err === 'cancel') return
         notifyWrap(err)
       }
-    }
+    },
+    //
+    openStatisticDialog() {
+      console.log('openStatisticDialog');
+      this.statisticDialog = true
+    },
+    handleCancelStatistic(result) {
+      console.log('handleCancelStatistic', result);
+      if (result) {
+        this.filteredCategoryIds = result.categories_ids
+        this.filteredDates = result.dates
+        this.isShowFilteredOnly = result.isShowFilteredOnly
+      }
+      this.statisticDialog = false
+    },
   },
 }
 </script>
@@ -698,6 +784,7 @@ export default {
 
 .el-table :deep(.cell) {
   text-overflow: initial;
+  overflow: unset;
 }
 
 :deep(.el-table__placeholder) {
@@ -880,7 +967,15 @@ export default {
   justify-content: right;
   flex-wrap: wrap-reverse;
   row-gap: 8px;
+  column-gap: 12px;
   margin-top: 12px;
+}
+.button-container>.el-button {
+  margin: 0;
+}
+.el-badge>:deep(sup) {
+  top: 4px;
+  right: 8px !important;
 }
 .correlation-check {
   display:flex;
