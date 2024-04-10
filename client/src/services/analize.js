@@ -93,32 +93,20 @@ const getPearsonCorrelation = (dataX, dataY, threshold = 0.05) => {
 };
 
 function getSmirnovStatistic(matrix) {
-    const rows = Object.keys(matrix);
-    const cols = Object.keys(matrix[Object.keys(matrix)[0]]);
-    // const numRows = matrix.length; // Количество строк в матрице
-    // const numCols = matrix[0].length; // Количество столбцов (выборок) в матрице
+    const rows = Object.keys(matrix); // Количество строк в матрице
+    const cols = Object.keys(matrix[Object.keys(matrix)[0]]); // Количество столбцов (выборок) в матрице
     let n = 0; // Общее количество наблюдений
     let gammaN = 0; // Статистика Колмогорова-Смирнова
 
-    // const nu_idot = new Array(numRows).fill(0);
-    // const nu_dotj = new Array(numCols).fill(0);
     const nu_idot = Object.fromEntries(rows.map(row => [row, 0]));
     const nu_dotj = Object.fromEntries(cols.map(col => [col, 0]));
-    // const deviations = nu_idot.map(() => [...nu_dotj]);
     const deviations = Object.fromEntries(
         rows.map(row => [row, Object.fromEntries(cols.map(col => [col, undefined]))])
     );
 
     // Заполнение nu_dotj и nu_idot и подсчет n
-    // for (let i = 0; i < numRows; i++) {
-    //     for (let j = 0; j < numCols; j++) {
-
-    // console.log(matrix);
-    // console.log(rows);
-    // console.log(cols);
     for (const i of rows) {
         for (const j of cols) {
-            // console.log(matrix, i, j, matrix[i], matrix[i][j]);
             nu_idot[i] += matrix[i][j];
             nu_dotj[j] += matrix[i][j];
             n += matrix[i][j];
@@ -126,8 +114,6 @@ function getSmirnovStatistic(matrix) {
     }
 
     // Вычисление статистики Колмогорова-Смирнова
-    // for (let i = 0; i < numRows; i++) {
-    //     for (let j = 0; j < numCols; j++) {
     for (const i of rows) {
         for (const j of cols) {
             const nu_ij = matrix[i][j];
@@ -140,7 +126,7 @@ function getSmirnovStatistic(matrix) {
         }
     }
 
-    gammaN = n * gammaN - 1;
+    gammaN = n * gammaN;
 
     console.log(deviations);
     return { gammaN, deviations };
