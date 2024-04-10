@@ -6,8 +6,9 @@
         <el-page-header @back="goBack">
             <template #title> Назад </template>
             <template #content>
-                <span class="text-large font-600 mr-3"> {{ ($route.redirectedFrom && $route.redirectedFrom.fullPath) ||
-                    '404' }} </span>
+                <span class="text-large font-600 mr-3">
+                    {{ ($route.redirectedFrom && $route.redirectedFrom.fullPath) || '404' }}
+                </span>
             </template>
         </el-page-header>
         <p>Путь не найден</p>
@@ -21,12 +22,12 @@ export default {
     },
     computed: {},
     data() {
-        return {}
+        return {};
     },
     methods: {
         goBack() {
-            return this.$router.go(-1)
-        }
-    }
-}
+            return this.$router.go(-1);
+        },
+    },
+};
 </script>

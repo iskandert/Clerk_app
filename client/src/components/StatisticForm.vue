@@ -235,8 +235,8 @@ export default {
             this.cancelProcessing({
                 ...cloneByJSON(clearModel),
                 isShowFilteredOnly: false,
-            })
-        }
+            });
+        },
     },
     watch: {
         isAllCategs(nv) {

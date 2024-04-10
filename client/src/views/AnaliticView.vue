@@ -1,16 +1,9 @@
 <template>
-  <div class="container">
-    <AnaliticChartBalance />
-  </div>
+    <div class="container">
+        <AnaliticChartBalance />
+    </div>
 </template>
-<script>
+<script setup>
 import AnaliticChartBalance from '../components/AnaliticChartBalance.vue';
-
-export default {
-  components: { AnaliticChartBalance },
-  data() {
-    return {}
-  },
-}
 </script>
 <style scoped></style>
