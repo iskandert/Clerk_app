@@ -74,7 +74,7 @@ export default {
             return getFormattedCount(+this.sum || 0, { accuracy: 0 });
         },
         deviationRounded() {
-            return this.deviation !== null ? this.deviation.toFixed(2) : null;
+            return this.deviation !== null ? +this.deviation.toFixed(2) : null;
         },
         backgroundPercent() {
             const percent = this.deviationRounded * 100;

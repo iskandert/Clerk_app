@@ -83,10 +83,13 @@ const getPearsonCorrelation = (dataX, dataY, threshold = 0.05) => {
     // Вычисляем числитель и знаменатель формулы коэффициента корреляции Пирсона
     const numerator = n * sumXY - sumX * sumY;
     const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+    if (denominator === 0) {
+        return { k: 0 };
+    }
     const k = numerator / denominator;
 
     return {
-        k: k.toFixed(2),
+        k: +k.toFixed(2),
         isPositive: k >= threshold,
         isNegative: k <= -threshold,
     };
