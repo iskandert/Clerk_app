@@ -19,8 +19,8 @@
                     label="Сортировка по возрастанию"
                 />
                 <el-checkbox
-                    v-model="isAbsoluteSums"
-                    label="Абсолютные значения"
+                    v-model="isRelativeSums"
+                    label="Относительные значения"
                 />
             </div>
             <div
@@ -28,25 +28,34 @@
                 class="result"
                 :style="correlationBackgroundColor"
             >
-                <div class="koef">{{ correlation.k }}</div>
-                <div class="title">
-                    {{ correlation.title }}{{correlation.type ? ',' : ''}}
-                </div>
-                <div
-                    class="type"
-                >
+                <div class="koef"><i style="">ρ</i> = {{ correlation.k.toFixed(2) }}</div>
+                <div class="title">{{ correlation.title }}{{ correlation.type ? ',' : '' }}</div>
+                <div class="type">
                     {{ correlation.type }}
                 </div>
             </div>
         </div>
         <div
             v-if="sums"
-            class="chart-container"
+            class="charts-container"
         >
-            <Line
-                :data="data"
-                :options="options"
-            />
+            <div class="chart-container">
+                <Line
+                    :data="dataLine"
+                    :options="optionsLine"
+                />
+            </div>
+            <!-- </div>
+        <div
+            v-if="sums"
+            class="chart-container"
+        > -->
+            <div class="chart-container">
+                <Scatter
+                    :data="dataScatter"
+                    :options="optionsScatter"
+                />
+            </div>
         </div>
     </el-card>
 
@@ -80,13 +89,13 @@ import {
     Legend,
     Filler,
 } from 'chart.js';
-import { Line } from 'vue-chartjs';
+import { Line, Scatter } from 'vue-chartjs';
 import { dayjs, getCssVar, getFormattedCount } from '../services/utils';
 import { ref, shallowRef, computed } from 'vue';
 import store from '../store';
 import { DataAnalysis } from '@element-plus/icons-vue';
 import AnaliticCorrelationForm from './AnaliticCorrelationForm.vue';
-import { getPearsonCorrelation } from '../services/analize';
+import { getLinearRegression, getPearsonCorrelation } from '../services/analize';
 
 ChartJS.register(
     CategoryScale,
@@ -112,7 +121,7 @@ const CORRELATION_STEPS = [
 
 const isOpened = ref(false);
 const isRangedValues = ref(false);
-const isAbsoluteSums = ref(true);
+const isRelativeSums = ref(true);
 const categoryIds = ref([]);
 const dates = ref([]);
 
@@ -167,14 +176,17 @@ const sums = computed(() => {
         })
         .map(data => ({
             ...data,
-            nu_a: +(data.sum_a / category_a_sum).toFixed(2),
-            nu_b: +(data.sum_b / category_b_sum).toFixed(2),
-        }))
-        .sort(({ sum_a: sum1 }, { sum_a: sum2 }) => {
-            if (!isRangedValues.value) return 0;
-            if (sum1 < sum2) return -1;
-            if (sum1 > sum2) return 1;
-        });
+            nu_a: +(data.sum_a / category_a_sum).toFixed(4),
+            nu_b: +(data.sum_b / category_b_sum).toFixed(4),
+        }));
+});
+const sumsRanged = computed(() => {
+    if (!isRangedValues.value) return sums.value;
+    return sums.value.slice().sort(({ sum_a: sum1 }, { sum_a: sum2 }) => {
+        if (sum1 < sum2) return -1;
+        if (sum1 > sum2) return 1;
+        return 0;
+    });
 });
 const correlation = computed(() => {
     const dataA = [];
@@ -213,72 +225,30 @@ const correlationBackgroundColor = computed(() => {
     }
     return prefix + `color-mix(in srgb, ${middleColor} ${100 - diffAbs}%, ${endColor})`;
 });
-const data = computed(() => {
+const dataLine = computed(() => {
     return {
-        labels: sums.value.map(({ date }) => date),
-        // TODO correlation line
+        labels: sumsRanged.value.map(({ date }) => date),
         datasets: [
             {
                 label: categoriesChecked.value[categoryIds.value[0]].name,
-                data: sums.value.map(({ sum_a, nu_a }) => (isAbsoluteSums.value ? sum_a : nu_a)),
+                data: sumsRanged.value.map(({ sum_a, nu_a }) =>
+                    !isRelativeSums.value ? sum_a : nu_a
+                ),
                 backgroundColor: getCssVar('--el-color-primary'),
                 borderColor: getCssVar('--el-color-primary-light-3'),
-                // fill: {
-                //     target: true,
-                //     above: getCssVar('--el-color-gray-light-5') + '40',
-                //     below: getCssVar('--el-color-danger') + '40',
-                // },
-                // tooltip: {
-                //     callbacks: {
-                //         label: context => {
-                //             return (
-                //                 ' ' + getFormattedCount(context.raw, { accuracy: 0 }) + ' - остаток'
-                //             );
-                //         },
-                //     },
-                // },
             },
             {
                 label: categoriesChecked.value[categoryIds.value[1]].name,
-                data: sums.value.map(({ sum_b, nu_b }) => (isAbsoluteSums.value ? sum_b : nu_b)),
+                data: sumsRanged.value.map(({ sum_b, nu_b }) =>
+                    !isRelativeSums.value ? sum_b : nu_b
+                ),
                 backgroundColor: getCssVar('--el-color-danger'),
                 borderColor: getCssVar('--el-color-danger-light-3'),
             },
-            // {
-            //     label: 'C накоплениями',
-            //     data: this.balances.map(({ total }) => total),
-            //     backgroundColor: getCssVar('--el-color-primary'),
-            //     borderColor: getCssVar('--el-color-primary-light-3'),
-            //     fill: {
-            //         target: 0,
-            //         above: getCssVar('--el-color-primary') + '40',
-            //         below: getCssVar('--el-color-gray-light-5') + '40',
-            //     },
-            //     tooltip: {
-            //         callbacks: {
-            //             label: context => {
-            //                 return (
-            //                     ' ' +
-            //                     getFormattedCount(this.balances[context.dataIndex].savings || 0, {
-            //                         accuracy: 0,
-            //                     }) +
-            //                     ' - накопления'
-            //                 );
-            //             },
-            //             beforeLabel: context => {
-            //                 return (
-            //                     ' ' +
-            //                     getFormattedCount(context.raw, { accuracy: 0 }) +
-            //                     ' - с остатком'
-            //                 );
-            //             },
-            //         },
-            //     },
-            // },
         ],
     };
 });
-const options = computed(() => {
+const optionsLine = computed(() => {
     return {
         responsive: true,
         maintainAspectRatio: false,
@@ -291,14 +261,24 @@ const options = computed(() => {
                 cubicInterpolationMode: 'monotone',
             },
         },
-        // scales: {
-        //     y: {
-        //         min:
-        //             Math.min(0, ...this.balances.map(({ balance }) => balance)) &&
-        //             undefined,
-        //         max: Math.max(0, ...this.balances.map(({ total }) => total)) && undefined,
-        //     },
-        // },
+        scales: {
+            x: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Месяц',
+                },
+            },
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: isRelativeSums.value
+                        ? 'Доля в сумме месяцев по категории'
+                        : 'Сумма по категории',
+                },
+            },
+        },
         plugins: {
             legend: {
                 display: true,
@@ -306,13 +286,117 @@ const options = computed(() => {
                     usePointStyle: true,
                 },
             },
-            // tooltip: {
-            //     callbacks: {
-            //         label: function (context) {
-            //             return getFormattedCount(context.raw || 0, { accuracy: 0 });
-            //         },
-            //     },
-            // },
+        },
+    };
+});
+const dataScatter = computed(() => {
+    const coordsList = sums.value.map(({ sum_a, sum_b, nu_a, nu_b }) => ({
+        x: !isRelativeSums.value ? sum_a : nu_a,
+        y: !isRelativeSums.value ? sum_b : nu_b,
+    }));
+
+    // console.log(
+    //     'a',
+    //     sums.value
+    //         .map(({ sum_a }) => sum_a)
+    //         .join('\n')
+    //         .replaceAll('.', ',')
+    // );
+    // console.log(
+    //     'b',
+    //     sums.value
+    //         .map(({ sum_b }) => sum_b)
+    //         .join('\n')
+    //         .replaceAll('.', ',')
+    // );
+    const datasets = [
+        {
+            label: 'Корреляционное поле',
+            data: coordsList,
+            backgroundColor: getCssVar('--el-color-success'),
+            borderColor: getCssVar('--el-color-success-light-3'),
+            order: 2,
+        },
+    ];
+
+    if (Math.abs(correlation.value.k) >= 0.7) {
+        // const regression = getLinearRegression(coordsList, correlation.value.k);
+        const regression = getLinearRegression(coordsList, Math.abs(correlation.value.k));
+        const x_min = regression.bounds[0].x * 0.5;
+        const x_max = regression.bounds[1].x * 1.2;
+
+        datasets.push({
+            label: `Линейная регрессия ${regression.mathString}, R2 = ${regression.r_2.toFixed(
+                2
+            )}`.replaceAll('.', ','),
+            type: 'line',
+            data: [
+                { x: x_min, y: regression.y(x_min) },
+                // { x: 0.5, y: regression.y(0.5) },
+                { x: x_max, y: regression.y(x_max) },
+            ],
+            backgroundColor: getCssVar('--el-color-warning'),
+            borderColor: getCssVar('--el-color-warning-light-3'),
+            order: 1,
+        });
+    }
+
+    return {
+        datasets,
+    };
+});
+const optionsScatter = computed(() => {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        elements: {
+            point: {
+                radius: 5,
+                hoverRadius: 7,
+            },
+            line: {
+                cubicInterpolationMode: 'monotone',
+            },
+        },
+        datasets: {
+            line: {
+                elements: {
+                    point: {
+                        radius: 0,
+                        hoverRadius: 0,
+                    },
+                },
+            },
+        },
+        scales: {
+            x: {
+                display: true,
+                title: {
+                    display: true,
+                    text: `${isRelativeSums.value ? 'Доли по' : 'Суммы'} категории "${
+                        categoriesChecked.value[categoryIds.value[0]].name
+                    }"`,
+                },
+                beginAtZero: true,
+            },
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: `${isRelativeSums.value ? 'Доли по' : 'Суммы'} категории "${
+                        categoriesChecked.value[categoryIds.value[1]].name
+                    }"`,
+                },
+                beginAtZero: true,
+            },
+        },
+        plugins: {
+            legend: {
+                display: true,
+                labels: {
+                    usePointStyle: true,
+                },
+            },
         },
     };
 });
@@ -326,8 +410,18 @@ const handleCancelStatistic = result => {
 };
 </script>
 <style scoped>
-.chart-container {
+.charts-container {
     margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1fr 60vh;
+    overflow: auto;
+}
+@media (max-width: 992px) {
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+.chart-container {
     height: 60vh;
 }
 .content {

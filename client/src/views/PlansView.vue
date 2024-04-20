@@ -769,10 +769,14 @@ export default {
                         );
                     });
 
-                    correlations[date] = getPearsonCorrelation(
+                    const corr = getPearsonCorrelation(
                         correlationDataCurr,
                         correlationDataPrev
                     );
+                    correlations[date] = {
+                        ...corr,
+                        k: +corr.k.toFixed(2),
+                    }
                 }
             });
 

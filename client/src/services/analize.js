@@ -89,13 +89,13 @@ const getPearsonCorrelation = (dataX, dataY, threshold = 0.05) => {
     const k = numerator / denominator;
 
     return {
-        k: +k.toFixed(2),
+        k,
         isPositive: k >= threshold,
         isNegative: k <= -threshold,
     };
 };
 
-function getSmirnovStatistic(matrix) {
+const getSmirnovStatistic = matrix => {
     const rows = Object.keys(matrix); // Количество строк в матрице
     const cols = Object.keys(matrix[Object.keys(matrix)[0]]); // Количество столбцов (выборок) в матрице
     let n = 0; // Общее количество наблюдений
@@ -131,13 +131,78 @@ function getSmirnovStatistic(matrix) {
 
     gammaN = n * gammaN;
 
-    console.log(deviations);
     return { gammaN, deviations };
-}
+};
+
+const getLinearRegression = (coordsList, pKoef) => {
+    const n = coordsList.length;
+    let x_sum = 0;
+    let y_sum = 0;
+    let x_squares_sum = 0;
+    let y_squares_sum = 0;
+
+    let x_min = undefined;
+    let x_max = undefined;
+    let y_min = undefined;
+    let y_max = undefined;
+
+    for (const { x, y } of coordsList) {
+        x_sum += x;
+        y_sum += y;
+        x_squares_sum += x ** 2;
+        y_squares_sum += y ** 2;
+
+        x_min = x_min === undefined ? x : Math.min(x_min, x)
+        y_min = y_min === undefined ? y : Math.min(y_min, y)
+        x_max = x_max === undefined ? x : Math.max(x_max, x)
+        y_max = y_max === undefined ? y : Math.max(y_max, y)
+    }
+
+    const x_mean = x_sum / n;
+    const y_mean = y_sum / n;
+    const x_squares_mean = x_squares_sum / n;
+    const y_squares_mean = y_squares_sum / n;
+
+    const beta_x = (x_squares_mean - x_mean ** 2) ** 0.5;
+    const beta_y = (y_squares_mean - y_mean ** 2) ** 0.5;
+
+    const a = pKoef * beta_y / beta_x;
+    const b = (beta_x * y_mean - pKoef * beta_y * x_mean) / beta_x;
+
+    const getY = (x) => {
+        return a * x + b;
+    } 
+
+    let numerator = 0;
+    let denominator = 0;
+
+    for (const { x, y } of coordsList) {
+        numerator += (getY(x) - y_mean) ** 2;
+        denominator += (y - y_mean) ** 2;
+    }
+
+    let r_2;
+    if (!denominator) {
+        r_2 = 0;
+    } else {
+        r_2 = numerator / denominator;
+    }
+
+    return {
+        y: getY,
+        mathString: `y = ${a.toFixed(2)}x ${b < 0 ? '-' : '+'} ${Math.abs(b).toFixed(2)}`,
+        bounds: [
+            { x: x_min, y: y_min },
+            { x: x_max, y: y_max },
+        ],
+        r_2,
+    }
+};
 
 export {
     getStandardDeviation,
     getIdsInNormalDistribution,
     getPearsonCorrelation,
     getSmirnovStatistic,
+    getLinearRegression,
 };
